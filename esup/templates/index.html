@@ -1,0 +1,9 @@
+{% if classes_list %}
+    <ul>
+    {% for class in classes_list %}
+        <li>{{ class.subject }} {{ class.kind }} {{ class.room }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No classes are available.</p>
+{% endif %}

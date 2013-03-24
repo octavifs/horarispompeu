@@ -42,6 +42,9 @@ class SubjectAlias(models.Model):
 class Year(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
 
+    def __unicode__(self):
+        return "<Year {0}>".format(self.name)
+
 
 GROUP_CHOICES = (
     ("GRUP 1", "GRUP 1"),
@@ -50,13 +53,13 @@ GROUP_CHOICES = (
 
 
 class Class(models.Model):
-    subject = models.ForeignKey(Subject, blank=True)
+    subject = models.ForeignKey(Subject, null=True, blank=True)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
     subgroup = models.CharField(max_length=50, blank=True)
     kind = models.CharField(max_length=50, blank=True)
     room = models.CharField(max_length=50, blank=True)
-    date_start = models.DateTimeField('class start', blank=True)
-    date_end = models.DateTimeField('class end', blank=True)
+    date_start = models.DateTimeField('class start', null=True, blank=True)
+    date_end = models.DateTimeField('class end', null=True, blank=True)
     year = models.ForeignKey(Year)
     raw_entry = models.TextField()
 

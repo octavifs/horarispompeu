@@ -1,7 +1,7 @@
-{% if classes_list %}
+{% if subject_list %}
     <ul>
-    {% for class in classes_list %}
-        <li>{{ class.subject }} {{ class.kind }} {{ class.room }}</li>
+    {% for subject in subject_list %}
+        <li>{{ subject.name }} {{ subject.faculty.name }}</li>
     {% endfor %}
     </ul>
 {% else %}

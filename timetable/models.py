@@ -1,3 +1,5 @@
+# encoding: utf-8
+from __future__ import unicode_literals
 from django.db import models
 
 
@@ -6,6 +8,9 @@ class Faculty(models.Model):
 
     class Meta:
         verbose_name_plural = 'Faculties'  # admin will show correct plural
+
+    def __unicode__(self):
+        return self.name
 
 
 class Degree(models.Model):
@@ -25,6 +30,13 @@ class Subject(models.Model):
     faculty = models.ForeignKey(Faculty)
     name = models.CharField(max_length=100)
 
+    class Meta:
+        unique_together = ("faculty", "name")
+        ordering = ("name", "faculty")
+
+    def __unicode__(self):
+        return "{0} a {1}".format(self.name, self.faculty)
+
 
 class SubjectAlias(models.Model):
     '''Links a subject alias to its 'official' name.
@@ -33,17 +45,19 @@ class SubjectAlias(models.Model):
     subject.
     '''
     name = models.CharField(max_length=100)
-    subject = models.ForeignKey(Subject)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = 'Subject aliases'
+        unique_together = ("name", "subject")
+        ordering = ("subject", "name")
 
 
 class Year(models.Model):
-    name = models.CharField(max_length=100, primary_key=True)
+    year = models.CharField(max_length=100, primary_key=True)
 
     def __unicode__(self):
-        return "<Year {0}>".format(self.name)
+        return self.year
 
 
 GROUP_CHOICES = (

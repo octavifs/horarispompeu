@@ -36,7 +36,7 @@ class SubjectAlias(models.Model):
     subject = models.ForeignKey(Subject)
 
     class Meta:
-        verbose_name_plural = 'Subject aliases'  # admin will show correct plural
+        verbose_name_plural = 'Subject aliases'
 
 
 class Year(models.Model):
@@ -50,18 +50,18 @@ GROUP_CHOICES = (
 
 
 class Class(models.Model):
-    subject = models.ForeignKey(Subject)
-    group = models.CharField(max_length=50, choices=GROUP_CHOICES)
+    subject = models.ForeignKey(Subject, blank=True)
+    group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
     subgroup = models.CharField(max_length=50, blank=True)
-    kind = models.CharField(max_length=50)
-    room = models.CharField(max_length=50)
-    date_start = models.DateTimeField('class start')
-    date_end = models.DateTimeField('class end')
+    kind = models.CharField(max_length=50, blank=True)
+    room = models.CharField(max_length=50, blank=True)
+    date_start = models.DateTimeField('class start', blank=True)
+    date_end = models.DateTimeField('class end', blank=True)
     year = models.ForeignKey(Year)
     raw_entry = models.TextField()
 
     class Meta:
-        verbose_name_plural = 'Classes'  # admin will show correct plural
+        verbose_name_plural = 'Classes'
 
     def __unicode__(self):
         rep = [

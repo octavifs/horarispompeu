@@ -1,4 +1,4 @@
 from django.contrib import admin
-from esup.models import Class
+from timetable.models import Class
 
 admin.site.register(Class)

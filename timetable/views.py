@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import Context, loader
 
-from esup.models import Class
+from timetable.models import Class
 
 
 # Create your views here.

@@ -86,7 +86,7 @@ class SubjectAlias(models.Model):
         ordering = ("subject", "name")
 
 
-class Year(models.Model):
+class AcademicYear(models.Model):
     year = models.CharField(max_length=100, primary_key=True)
 
     def __unicode__(self):
@@ -107,7 +107,7 @@ class Class(models.Model):
     room = models.CharField(max_length=50, blank=True)
     date_start = models.DateTimeField('class start', null=True, blank=True)
     date_end = models.DateTimeField('class end', null=True, blank=True)
-    year = models.ForeignKey(Year)
+    academic_year = models.ForeignKey(AcademicYear)
     raw_entry = models.TextField()
 
     class Meta:
@@ -132,9 +132,17 @@ class DegreeSubject(models.Model):
         ('2n Trimestre', '2n Trimestre'),
         ('3r Trimestre', '3r Trimestre'),
     )
+    YEAR_CHOICES = (
+        ("1r", "1r"),
+        ("2n", "2n"),
+        ("3r", "3r"),
+        ("4t", "4t"),
+        ("optatives", "optatives"),
+    )
     subject = models.ForeignKey(Subject)
     degree = models.ForeignKey(Degree)
-    year = models.ForeignKey(Year)
+    academic_year = models.ForeignKey(AcademicYear)
+    year = models.CharField(max_length=50, choices=YEAR_CHOICES)
     term = models.CharField(max_length=50, choices=TERM_CHOICES)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES)
 

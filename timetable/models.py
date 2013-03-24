@@ -1,6 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch.dispatcher import receiver
+from django.db import IntegrityError
+from copy import copy
 
 
 class Faculty(models.Model):
@@ -36,6 +40,35 @@ class Subject(models.Model):
 
     def __unicode__(self):
         return "{0} a {1}".format(self.name, self.faculty)
+
+
+class SubjectDuplicate(models.Model):
+    """Stores subjects that appear multiple times on the degree subject list
+    under similar names.
+    """
+    faculty = models.ForeignKey(Faculty)
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ("faculty", "name")
+        ordering = ("name", "faculty")
+
+    def __unicode__(self):
+        return "{0} a {1}".format(self.name, self.faculty)
+
+
+@receiver(post_delete, sender=Subject)
+def _subject_delete(sender, instance, **kwargs):
+    try:
+        fields = {
+            'faculty': copy(instance.faculty),
+            'name': copy(instance.name),
+        }
+        print fields
+        duplicate = SubjectDuplicate(**fields)
+        duplicate.save()
+    except IntegrityError, e:
+        print e
 
 
 class SubjectAlias(models.Model):

@@ -4,7 +4,7 @@ from django.core.management.base import NoArgsCommand
 from django.db import IntegrityError
 import requests
 from bs4 import BeautifulSoup
-from timetable.models import Faculty, Subject, SubjectAlias
+from timetable.models import Faculty, Subject, SubjectAlias, SubjectDuplicate
 
 
 # Faculty names
@@ -45,6 +45,8 @@ class Command(NoArgsCommand):
                 raise e
             except Exception, e:
                 raise e
+        print "Subjects added succesfully."
+        print "Make sure to delete any redundant entries in the database."
 
     def parse_esup_html_into_subjects(self, html):
         # Gets ESUP faculty object from DB
@@ -65,6 +67,12 @@ class Command(NoArgsCommand):
             # Each entry looks like this:
             # 22683 Sistemes Interactius
             subject_name = entry.text[6:]
+            # Search if that subject had been deleted from the database (because
+            # it was a duplicate)
+            duplicates = SubjectDuplicate.objects.filter(faculty=faculty,
+                                                         name=subject_name)
+            if len(duplicates) != 0:
+                continue
             # Saves subject to the DB. If subject had already been saved,
             # retrieve it from the DB
             try:

@@ -15,6 +15,7 @@ class SubjectAliasAdmin(admin.ModelAdmin):
 admin.site.register(Faculty)
 admin.site.register(Degree)
 admin.site.register(Subject, SubjectAdmin)
+admin.site.register(SubjectDuplicate)
 admin.site.register(SubjectAlias, SubjectAliasAdmin)
 admin.site.register(Year)
 admin.site.register(Class)

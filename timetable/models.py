@@ -117,7 +117,7 @@ class Class(models.Model):
     def __unicode__(self):
         rep = [
             "<Class object>"
-            "subject: " + repr(self.subject),
+            #"subject: " + repr(self.subject),
             "kind: " + repr(self.kind),
             "group: " + repr(self.group),
             "room: " + repr(self.room),
@@ -146,6 +146,10 @@ class DegreeSubject(models.Model):
     year = models.CharField(max_length=50, choices=YEAR_CHOICES)
     term = models.CharField(max_length=50, choices=TERM_CHOICES)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES)
+
+    class Meta:
+        unique_together = ("subject", "degree", "academic_year", "year", "term",
+                           "group")
 
 
 class Calendar(models.Model):

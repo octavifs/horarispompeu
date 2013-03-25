@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.core.management.base import NoArgsCommand
 from django.db import IntegrityError
 import requests
+from timetable.models import *
 from _esup_timetable_data import *
 import _parser as parser
 
@@ -26,6 +27,43 @@ class Command(NoArgsCommand):
                 print ""
 
     def parse(self, degree, year, term, group, html):
+        esup = Faculty.objects.get(name='ESUP')
+        academic_year = AcademicYear(year='2012-13')
         classes = parser.parse(html)
+        # create degreesubjects
         for entry in classes:
-            print entry.raw_data
+            alias = entry.subject
+            subject = SubjectAlias.objects.filter(name=alias)[0].subject
+            degree_obj = Degree.objects.filter(name=degree, faculty=esup)[0]
+            degreesubject = DegreeSubject(
+                subject=subject,
+                degree=degree_obj,
+                academic_year=academic_year,
+                year=year,
+                term=term,
+                group=group
+            )
+            try:
+                degreesubject.save()
+            except Exception:
+                pass
+        # create classes
+        for entry in classes:
+            alias = entry.subject
+            subject = SubjectAlias.objects.filter(name=alias)[0].subject
+            degree_obj = Degree.objects.filter(name=degree, faculty=esup)[0]
+            class_obj = Class(
+                subject=subject,
+                group=group,
+                subgroup=entry.group,
+                kind=entry.kind,
+                room=entry.room,
+                date_start=entry.date_start,
+                date_end=entry.date_end,
+                academic_year=academic_year,
+                raw_entry=entry.raw_data,
+            )
+            try:
+                class_obj.save()
+            except Exception, e:
+                print e

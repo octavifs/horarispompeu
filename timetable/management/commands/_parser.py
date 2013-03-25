@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import unicode_literals
 from bs4 import BeautifulSoup
 from datetime import date, time, datetime
 from pytz import timezone
@@ -8,16 +9,16 @@ from icalendar import Calendar, Event
 from StringIO import StringIO
 import copy
 import re
-import sys
 
 
-class Class():
+class Class(object):
     subject = ""
     kind = ""
     group = ""
     room = ""
     date_start = ""
     date_end = ""
+    raw_data = ""
 
     def __str__(self):
         rep = "<Class object>\n"
@@ -60,6 +61,7 @@ def parseclass(cell, h_init, h_end, day):
     classes = []
     buf = StringIO(cell.get_text().strip())
     c = Class()
+    c.raw_data = cell.get_text().strip()
     # This finds any string followed by :, any number of spaces and
     # 2 digits separated by a point. The second digit might be preceded by any number of letters.
     group_regex = re.compile(r"(\w+\s*\w*):?\s+(\d{2}[\.|\,]\w*\d+)")
@@ -119,11 +121,8 @@ def createcalendar(classes):
     pass
 
 
-def main():
+def parse(html):
     classes = []
-    inputfile = open(sys.argv[1])
-    html = inputfile.read()
-    inputfile.close()
     soup = BeautifulSoup(html)
     for table in soup.find_all("table"):
         for numrow, row in enumerate(table.find_all("tr")):
@@ -140,10 +139,4 @@ def main():
                 else:
                     day = days[numcell]
                     classes.extend(parseclass(cell, h_init, h_end, day))
-    for entry in classes:
-        print entry
-        raw_input()
-    createcalendar(classes)
-
-if __name__ == '__main__':
-    main()
+    return classes

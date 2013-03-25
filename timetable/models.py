@@ -78,7 +78,8 @@ class SubjectAlias(models.Model):
     subject.
     '''
     name = models.CharField(max_length=100)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True,
+                                blank=True)
 
     class Meta:
         verbose_name_plural = 'Subject aliases'

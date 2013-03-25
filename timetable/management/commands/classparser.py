@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from django.core.management.base import NoArgsCommand
 from django.db import IntegrityError
 import requests
-from bs4 import BeautifulSoup
-from esup_timetable_data import *
+from _esup_timetable_data import *
+import _parser as parser
 
 
 class Command(NoArgsCommand):
@@ -16,10 +16,16 @@ class Command(NoArgsCommand):
                 for term, groups in terms.iteritems():
                     for group, url in groups:
                         print url
-                        requests.get(url)
+                        html = requests.get(url).text
+                        self.parse(degree, year, term, group, html)
                         print ""
         for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
             for group, url in groups:
                 print url
                 requests.get(url)
                 print ""
+
+    def parse(self, degree, year, term, group, html):
+        classes = parser.parse(html)
+        for entry in classes:
+            print entry.raw_data

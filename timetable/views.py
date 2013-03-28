@@ -27,8 +27,8 @@ def degree(request):
 
 def year(request):
     year_choices = [entry[0] for entry in DegreeSubject.YEAR_CHOICES]
-    degree_list = {Degree.objects.get(pk=key): year_choices
-                   for key in request.POST.getlist('degree')}
+    degree_list = dict((Degree.objects.get(pk=key), year_choices)
+                       for key in request.POST.getlist('degree'))
     context = {'degree_list': degree_list}
     return render(request, 'year.html', context)
 

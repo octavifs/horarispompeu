@@ -9,8 +9,8 @@
     <ul>
     {% for year in year_list %}
         <li>
-            <input type="checkbox" name="degree_year" value="{{ degree.id }}_{{ year }}" />
-            <label for="degree_year">{{ year }}</label>
+            <input type="checkbox" name="degree_year" id="degree{{ forloop.parentloop.counter }}_year{{ forloop.counter }}" value="{{ degree.id }}_{{ year }}" />
+            <label for="degree{{ forloop.parentloop.counter }}_year{{ forloop.counter }}">{{ year }}</label>
         </li>
     {% endfor %}
     </ul>

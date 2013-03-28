@@ -21,6 +21,9 @@ class Degree(models.Model):
     faculty = models.ForeignKey(Faculty)
     name = models.CharField(max_length=100)
 
+    class Meta:
+        ordering = ["name"]
+
     def __unicode__(self):
         rep = [
             "<Degree object>",

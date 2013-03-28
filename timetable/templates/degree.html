@@ -1,0 +1,16 @@
+<h1>Quins graus curses?</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'year' %}" method="post">
+{% csrf_token %}
+<ul>
+{% for degree in degree_list %}
+    <li>
+        <input type="checkbox" name="degree" id="degree{{ forloop.counter }}" value="{{ degree.id }}" />
+        <label for="degree{{ forloop.counter }}">{{ degree.name }}</label>
+    </li>
+{% endfor %}
+</ul>
+<input type="submit" value="Next" />
+</form>

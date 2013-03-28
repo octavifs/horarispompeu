@@ -1,0 +1,19 @@
+<h1>Quins cursos curses?</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'subject' %}" method="post">
+{% csrf_token %}
+{% for degree, year_list in degree_list.iteritems %}
+    <h2>{{ degree.name }}</h2>
+    <ul>
+    {% for year in year_list %}
+        <li>
+            <input type="checkbox" name="degree_year" value="{{ degree.id }}_{{ year }}" />
+            <label for="degree_year">{{ year }}</label>
+        </li>
+    {% endfor %}
+    </ul>
+{% endfor %}
+<input type="submit" value="Next" />
+</form>

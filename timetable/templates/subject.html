@@ -7,8 +7,8 @@
 <ul>
 {% for degree_subject in degree_subjects %}
     <li>
-        <input type="checkbox" name="degree_subject" id="degree_subject{{ forloop.counter }}" value="{{ degree_subject.id }}" />
-        <label for="degree_subject{{ forloop.counter }}">{{ degree_subject.subject.name }} {{degree_subject.year}}  {{degree_subject.group}}</label>
+        <input type="checkbox" name="degree_subject" id="degree_subject{{ forloop.counter }}" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}" />
+        <label for="degree_subject{{ forloop.counter }}">{{ degree_subject.subject__name }} {{degree_subject.year}} {{degree_subject.group}}</label>
     </li>
 {% endfor %}
 </ul>

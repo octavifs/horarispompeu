@@ -26,9 +26,21 @@ def degree(request):
 
 
 def year(request):
-    year_choices = [entry[0] for entry in DegreeSubject.YEAR_CHOICES]
-    degree_list = dict((Degree.objects.get(pk=key), year_choices)
-                       for key in request.POST.getlist('degree'))
+    degree_and_group_list = DegreeSubject.objects.filter(
+        degree__in=request.POST.getlist('degree')
+    ).order_by(
+        'degree',
+        'year',
+        'group'
+    ).values(
+        'degree',
+        'degree__name',
+        'year',
+        'group',
+    ).distinct()
+    degree_list = dict()
+    for entry in degree_and_group_list:
+        degree_list.setdefault(entry['degree__name'], []).append(entry)
     context = {'degree_list': degree_list}
     return render(request, 'year.html', context)
 
@@ -38,29 +50,27 @@ def subject(request):
     degree_year = request.POST.getlist('degree_year')
     courses = []
     for entry in degree_year:
-        degree_id, course = entry.split('_')
-        degree = Degree.objects.get(pk=degree_id)
-        courses.append((degree, course))
+        degree_id, course, group = entry.split('_')
+        courses.append((degree_id, course, group))
     degree_subjects = []
     q_list = []
-    for degree, course in courses:
-        q = Q(degree=degree, year=course, academic_year=academic_year)
+    for degree, course, group in courses:
+        q = Q(degree=degree, year=course, group=group,
+              academic_year=academic_year)
         q_list.append(q)
     degree_subjects = DegreeSubject.objects.filter(
         reduce(operator.or_, q_list)
     ).order_by(
-        'term',
+        'year',
+        'subject__name',
+    ).values(
         'subject',
+        'subject__name',
         'group',
-    )
-    distinct_subjects = set()
-    distinct_degree_subjects = []
-    for degree_subject in degree_subjects:
-        if (degree_subject.subject, degree_subject.group) in distinct_subjects:
-            continue
-        distinct_degree_subjects.append(degree_subject)
-        distinct_subjects.add((degree_subject.subject, degree_subject.group))
-    context = {'degree_subjects': distinct_degree_subjects}
+        'year'
+    ).distinct()
+    print degree_subjects
+    context = {'degree_subjects': degree_subjects}
     return render(request, 'subject.html', context)
 
 

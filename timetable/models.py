@@ -115,6 +115,7 @@ class Lesson(models.Model):
     raw_entry = models.TextField()
 
     class Meta:
+        ordering = ("-academic_year", "date_start", "subject", "group")
         verbose_name_plural = 'Lessons'
         # Don't allow duplicate entries
         unique_together = ("subject", "group", "subgroup", "kind", "room",

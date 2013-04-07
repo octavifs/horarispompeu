@@ -67,17 +67,8 @@ class DatabaseDuplicateTests(TestCase):
         self.assertRaises(IntegrityError, duplicate_subject.save)
 
     def test_class_duplicate_creation(self):
-        duplicate_lesson = Lesson(
-            subject=self.subject,
-            group="GRUP 1",
-            subgroup="S101",
-            kind="TEORIA",
-            room="52.349",
-            date_start=datetime.datetime(2013, 4, 4, 10, 30, 00),
-            date_end=datetime.datetime(2013, 4, 4, 12, 30, 00),
-            academic_year=self.academic_year,
-            raw_entry="Some similar stuff"
-        )
+        duplicate_lesson = self.lesson
+        duplicate_lesson.pk = None
         self.assertRaises(IntegrityError, duplicate_lesson.save)
 
     def test_degreesubject_duplicate_creation(self):

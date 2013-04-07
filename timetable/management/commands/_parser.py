@@ -11,7 +11,7 @@ import copy
 import re
 
 
-class Class(object):
+class Lesson(object):
     subject = ""
     kind = ""
     group = ""
@@ -21,7 +21,7 @@ class Class(object):
     raw_data = ""
 
     def __str__(self):
-        rep = "<Class object>\n"
+        rep = "<Lesson object>\n"
         rep += "subject: " + repr(self.subject) + "\n"
         rep += "kind: " + repr(self.kind) + "\n"
         rep += "group: " + repr(self.group) + "\n"
@@ -57,10 +57,10 @@ def parsehours(text):
     return h_init, h_end
 
 
-def parseclass(cell, h_init, h_end, day):
-    classes = []
+def parselesson(cell, h_init, h_end, day):
+    lessons = []
     buf = StringIO(cell.get_text().strip())
-    c = Class()
+    c = Lesson()
     c.raw_data = cell.get_text().strip()
     # This finds any string followed by :, any number of spaces and
     # 2 digits separated by a point. The second digit might be preceded by any number of letters.
@@ -96,17 +96,17 @@ def parseclass(cell, h_init, h_end, day):
                     group = ""
                 c.group = group
                 c.room = room
-                classes.append(c)
+                lessons.append(c)
                 c = c.copy()
-    return classes
+    return lessons
 
 
-def createcalendar(classes):
+def createcalendar(lessons):
     cal = Calendar()
     cal.add('prodid', '-//My calendar product//mxm.dk//')
     cal.add('version', '2.0')
 
-    for entry in classes:
+    for entry in lessons:
         event = Event()
         summary = u" ".join([entry.subject, entry.kind, entry.group])
         event.add('summary', summary)
@@ -122,7 +122,7 @@ def createcalendar(classes):
 
 
 def parse(html):
-    classes = []
+    lessons = []
     soup = BeautifulSoup(html)
     for table in soup.find_all("table"):
         for numrow, row in enumerate(table.find_all("tr")):
@@ -138,5 +138,5 @@ def parse(html):
                     h_init, h_end = parsehours(cell.get_text().strip())
                 else:
                     day = days[numcell]
-                    classes.extend(parseclass(cell, h_init, h_end, day))
-    return classes
+                    lessons.extend(parselesson(cell, h_init, h_end, day))
+    return lessons

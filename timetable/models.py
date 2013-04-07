@@ -103,26 +103,26 @@ GROUP_CHOICES = (
 )
 
 
-class Class(models.Model):
+class Lesson(models.Model):
     subject = models.ForeignKey(Subject, null=True, blank=True)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
     subgroup = models.CharField(max_length=50, blank=True)
     kind = models.CharField(max_length=50, blank=True)
     room = models.CharField(max_length=50, blank=True)
-    date_start = models.DateTimeField('class start', null=True, blank=True)
-    date_end = models.DateTimeField('class end', null=True, blank=True)
+    date_start = models.DateTimeField('lesson start', null=True, blank=True)
+    date_end = models.DateTimeField('lesson end', null=True, blank=True)
     academic_year = models.ForeignKey(AcademicYear)
     raw_entry = models.TextField()
 
     class Meta:
-        verbose_name_plural = 'Classes'
+        verbose_name_plural = 'Lessons'
         # Don't allow duplicate entries
         unique_together = ("subject", "group", "subgroup", "kind", "room",
                            "date_start", "date_end", "academic_year")
 
     def __unicode__(self):
         rep = [
-            "<Class object>"
+            "<Lesson object>"
             #"subject: " + repr(self.subject),
             "kind: " + repr(self.kind),
             "group: " + repr(self.group),

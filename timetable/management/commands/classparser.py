@@ -9,7 +9,7 @@ import _parser as parser
 
 
 class Command(NoArgsCommand):
-    help = "Parse classes and subjects from the ESUP degrees"
+    help = "Parse lessons and subjects from the ESUP degrees"
 
     def handle_noargs(self, **options):
         for degree, years in COMPULSORY_SUBJECTS_TIMETABLES.iteritems():
@@ -29,9 +29,9 @@ class Command(NoArgsCommand):
     def parse(self, degree, year, term, group, html):
         esup = Faculty.objects.get(name='ESUP')
         academic_year = AcademicYear(year='2012-13')
-        classes = parser.parse(html)
+        lessons = parser.parse(html)
         # create degreesubjects
-        for entry in classes:
+        for entry in lessons:
             alias = entry.subject
             subject = SubjectAlias.objects.filter(name=alias)[0].subject
             degree_obj = Degree.objects.filter(name=degree, faculty=esup)[0]
@@ -47,12 +47,12 @@ class Command(NoArgsCommand):
                 degreesubject.save()
             except Exception:
                 pass
-        # create classes
-        for entry in classes:
+        # create lessons
+        for entry in lessons:
             alias = entry.subject
             subject = SubjectAlias.objects.filter(name=alias)[0].subject
             degree_obj = Degree.objects.filter(name=degree, faculty=esup)[0]
-            class_obj = Class(
+            lesson = Lesson(
                 subject=subject,
                 group=group,
                 subgroup=entry.group,
@@ -64,6 +64,6 @@ class Command(NoArgsCommand):
                 raw_entry=entry.raw_data,
             )
             try:
-                class_obj.save()
+                lesson.save()
             except Exception, e:
                 print e

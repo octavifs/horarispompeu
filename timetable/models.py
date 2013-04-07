@@ -160,5 +160,6 @@ class DegreeSubject(models.Model):
 
 
 class Calendar(models.Model):
+    name = models.CharField(max_length=128, primary_key=True)
     calendar = models.FileField(upload_to='.')
     degree_subject = models.ManyToManyField(DegreeSubject)

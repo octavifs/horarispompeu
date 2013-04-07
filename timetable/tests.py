@@ -8,15 +8,18 @@ Replace this with more appropriate tests for your application.
 from __future__ import unicode_literals
 from django.test import TestCase
 from django.db import IntegrityError
+from django.core.files.base import ContentFile
 from timetable.models import *
 import datetime
-from icalendar import Calendar, Event
+import icalendar
 
 
-class DatabaseDuplicateTests(TestCase):
+class DatabaseTests(TestCase):
     """
     Tests that insertion of duplicates in the DB model raises IntegrityError
     exception.
+    Also tests that check the way ManyToMany and FileField work (from Calendar
+    model)
     """
     def setUp(self):
         """
@@ -30,6 +33,11 @@ class DatabaseDuplicateTests(TestCase):
             name="Àlgebra"
         )
         self.subject.save()
+        self.subject2 = Subject(
+            faculty=self.faculty,
+            name="Càlcul"
+        )
+        self.subject2.save()
         self.academic_year = AcademicYear(year="2012-13")
         self.academic_year.save()
         self.lesson = Lesson(
@@ -82,6 +90,12 @@ class DatabaseDuplicateTests(TestCase):
         )
         self.assertRaises(IntegrityError, duplicate_degreesubject.save)
 
+    def test_calendar_creation(self):
+        calendar = Calendar()
+        calendar.save()
+        calendar.calendar.save("hola", ContentFile("HOLAHOLA"))
+        self.assertEqual(calendar.calendar.url, "")
+
 
 class CalendarCreationTests(TestCase):
     def test_calendar_creation_of_lessons(self):
@@ -91,11 +105,11 @@ class CalendarCreationTests(TestCase):
             subject__name__contains="Àlgebra",
             group='GRUP 1'
         )
-        cal = Calendar()
+        cal = icalendar.Calendar()
         cal.add('prodid', '-//My calendar product//mxm.dk//')
         cal.add('version', '2.0')
         for entry in algebra_lessons:
-            event = Event()
+            event = icalendar.Event()
             event.add('summary', entry.subject.name + ' ' + entry.kind)
             event.add('dtstart', entry.date_start)
             event.add('dtend', entry.date_end)

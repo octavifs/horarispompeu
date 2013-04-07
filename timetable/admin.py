@@ -6,10 +6,12 @@ from timetable.models import *
 
 # Register all classes from the model to the admin panel
 class SubjectAdmin(admin.ModelAdmin):
+    search_fields = ['name']
     list_display = ['name', 'faculty']
 
 
 class SubjectAliasAdmin(admin.ModelAdmin):
+    search_fields = ['subject__name', 'name']
     list_display = ['name', 'subject']
 
 

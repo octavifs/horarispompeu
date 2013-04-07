@@ -20,11 +20,13 @@ class Command(NoArgsCommand):
                         html = requests.get(url).text
                         self.parse(degree, year, term, group, html)
                         print ""
-        for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
-            for group, url in groups:
-                print url
-                requests.get(url)
-                print ""
+        for degree in COMPULSORY_SUBJECTS_TIMETABLES:
+            for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
+                for group, url in groups:
+                    print url
+                    html = requests.get(url).text
+                    self.parse(degree, year, term, group, html)
+                    print ""
 
     def parse(self, degree, year, term, group, html):
         esup = Faculty.objects.get(name='ESUP')

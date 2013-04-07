@@ -123,7 +123,7 @@ class Lesson(models.Model):
     def __unicode__(self):
         rep = [
             "<Lesson object>"
-            #"subject: " + repr(self.subject),
+            "subject: " + repr(self.subject.name),
             "kind: " + repr(self.kind),
             "group: " + repr(self.group),
             "room: " + repr(self.room),

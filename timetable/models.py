@@ -116,6 +116,9 @@ class Class(models.Model):
 
     class Meta:
         verbose_name_plural = 'Classes'
+        # Don't allow duplicate entries
+        unique_together = ("subject", "group", "subgroup", "kind", "room",
+                           "date_start", "date_end", "academic_year")
 
     def __unicode__(self):
         rep = [

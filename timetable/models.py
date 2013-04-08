@@ -155,11 +155,15 @@ class DegreeSubject(models.Model):
     group = models.CharField(max_length=50, choices=GROUP_CHOICES)
 
     class Meta:
+        ordering = ("-academic_year", "year", "term", "subject", "group")
         unique_together = ("subject", "degree", "academic_year", "year", "term",
                            "group")
 
+    def __unicode__(self):
+        return " ".join([self.subject.name, self.degree.name, self.year, self.term])
+
 
 class Calendar(models.Model):
-    name = models.CharField(max_length=128, primary_key=True)
-    calendar = models.FileField(upload_to='.')
-    degree_subject = models.ManyToManyField(DegreeSubject)
+    name = models.CharField(max_length=128, primary_key=True, blank=False)
+    file = models.FileField(upload_to='.')
+    degree_subjects = models.ManyToManyField(DegreeSubject)

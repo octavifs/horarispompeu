@@ -11,7 +11,7 @@ from django.db import IntegrityError
 from django.core.files.base import ContentFile
 from timetable.models import *
 import datetime
-import icalendar
+import timetable.calendar
 
 
 class DatabaseTests(TestCase):
@@ -91,30 +91,19 @@ class DatabaseTests(TestCase):
         self.assertRaises(IntegrityError, duplicate_degreesubject.save)
 
     def test_calendar_creation(self):
-        calendar = Calendar()
+        calendar = Calendar(name="hola")
+        calendar2 = Calendar(name="hola")
+        calendar2.save()
+        calendar.file.save("hola", ContentFile("HOLAHOLA"))
         calendar.save()
-        calendar.calendar.save("hola", ContentFile("HOLAHOLA"))
-        self.assertEqual(calendar.calendar.url, "")
+        self.assertEqual(calendar.file.url, "")
+
+    def test_ics_creation_from_lessons(self):
+        lessons = Lesson.objects.filter(subject=self.subject, group='GRUP 1')
+        calendar = timetable.calendar.generate(lessons)
+        ics_string = b'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendari HorarisPompeu.com//mxm.dk//\r\nX-WR-CALNAME:horarispompeu.com\r\nBEGIN:VEVENT\r\nSUMMARY:TEORIA  \xc3\x80lgebra\r\nDTSTART;VALUE=DATE-TIME:20130404T083000Z\r\nDTEND;VALUE=DATE-TIME:20130404T103000Z\r\nLOCATION:52.349\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
+        self.assertEqual(calendar, ics_string)
 
 
 class CalendarCreationTests(TestCase):
-    def test_calendar_creation_of_lessons(self):
-        """
-        """
-        algebra_lessons = Lesson.objects.filter(
-            subject__name__contains="Àlgebra",
-            group='GRUP 1'
-        )
-        cal = icalendar.Calendar()
-        cal.add('prodid', '-//My calendar product//mxm.dk//')
-        cal.add('version', '2.0')
-        for entry in algebra_lessons:
-            event = icalendar.Event()
-            event.add('summary', entry.subject.name + ' ' + entry.kind)
-            event.add('dtstart', entry.date_start)
-            event.add('dtend', entry.date_end)
-            cal.add_component(event)
-        f = open('test.ics', 'wb')
-        f.write(cal.to_ical())
-        f.close()
-        self.assertEqual(1 + 1, 2)
+        pass

@@ -4,8 +4,11 @@ from django.shortcuts import render
 from django.template import Context, loader
 from django.db.models import Q
 import operator
+import hashlib
+from django.core.files.base import ContentFile
 
 from timetable.models import *
+import timetable.calendar
 
 
 # Create your views here.
@@ -75,4 +78,36 @@ def subject(request):
 
 
 def calendar(request):
-    return HttpResponse('Work in progress')
+    academic_year = AcademicYear.objects.get(pk='2012-13')
+    # degree_subjects contains a list with strings with the format
+    # {subject_id}_{group}
+    raw_selected_subjects = request.POST.getlist('degree_subject')
+    raw_selected_subjects.sort()
+    string_selected_subjects = "\n".join(raw_selected_subjects)
+    # The calendar will have, for its filename, the SHA256 hash of the sorted
+    # pairs of (subject_id, group) returned by the selection form
+    subjects_hash = hashlib.sha256(string_selected_subjects).hexdigest()
+    calendar = None
+    try:
+        calendar = Calendar.objects.get(pk=subjects_hash)
+    except Calendar.DoesNotExist:
+        calendar = Calendar(name=subjects_hash)
+        selected_subjects = \
+            [(lambda (s_id, group): (int(s_id), group))(e.split('_')) for e in
+             request.POST.getlist('degree_subject')]
+        if not selected_subjects:
+            # Throw some error when selectedsubjects has no subjects!
+            # or handle it on the subject view (or both)
+            pass
+        q_list = []
+        for subject_id, group in selected_subjects:
+            q = Q(subject=subject_id, group=group, academic_year=academic_year)
+            q_list.append(q)
+        subjects_group_filter = reduce(operator.or_, q_list)
+        lessons = Lesson.objects.filter(subjects_group_filter)
+        degree_subjects = DegreeSubject.objects.filter(subjects_group_filter)
+        calendar.file.save(calendar.name + '.ics',
+                           ContentFile(timetable.calendar.generate(lessons)))
+        calendar.degree_subjects.add(*degree_subjects)
+    finally:
+        return HttpResponse(calendar.file.url)

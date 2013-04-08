@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <h1>Quines assignatures curses?</h1>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
@@ -14,3 +17,4 @@
 </ul>
 <input type="submit" value="Next" />
 </form>
+{% endblock %}

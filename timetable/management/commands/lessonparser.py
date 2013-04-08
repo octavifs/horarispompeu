@@ -25,7 +25,7 @@ class Command(NoArgsCommand):
                 for group, url in groups:
                     print url
                     html = requests.get(url).text
-                    self.parse(degree, year, term, group, html)
+                    self.parse(degree, "optatives", term, group, html)
                     print ""
 
     def parse(self, degree, year, term, group, html):

@@ -72,7 +72,6 @@ def subject(request):
         'group',
         'year'
     ).distinct()
-    print degree_subjects
     context = {'degree_subjects': degree_subjects}
     return render(request, 'subject.html', context)
 
@@ -96,6 +95,7 @@ def calendar(request):
             [(lambda (s_id, group): (int(s_id), group))(e.split('_')) for e in
              request.POST.getlist('degree_subject')]
         if not selected_subjects:
+            # TODO:
             # Throw some error when selectedsubjects has no subjects!
             # or handle it on the subject view (or both)
             pass
@@ -110,4 +110,5 @@ def calendar(request):
                            ContentFile(timetable.calendar.generate(lessons)))
         calendar.degree_subjects.add(*degree_subjects)
     finally:
-        return HttpResponse(calendar.file.url)
+        context = {'calendar_url': calendar.file.url}
+        return render(request, 'calendar.html', context)

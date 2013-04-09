@@ -47,5 +47,25 @@
         <p>Powered by Django</p>
         <p>Check the source code on <a href="https://github.com/octavifs/horarispompeu">GitHub</a></p>
     </div>
+    <script type="text/javascript">
+        var month=new Array();
+        month[0]="Gener";
+        month[1]="Febrer";
+        month[2]="Març";
+        month[3]="Abril";
+        month[4]="Maig";
+        month[5]="Juny";
+        month[6]="Juliol";
+        month[7]="Agost";
+        month[8]="Setembre";
+        month[9]="Octubre";
+        month[10]="Novembre";
+        month[11]="Desembre";
+        var d = new Date();
+        var cal_month = document.getElementById("cal_month");
+        cal_month.innerHTML=month[d.getMonth()];
+        var cal_day = document.getElementById("cal_day");
+        cal_day.innerHTML=d.getDate();
+    </script>
 </body>
 </html>

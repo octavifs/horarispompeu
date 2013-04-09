@@ -144,9 +144,9 @@ OPTIONAL_SUBJECTS_TIMETABLES = {
         ('GRUP 1', 'http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T1_G1.html'),
     ],
     '2n Trimestre': [
-        ('GRUP 1', 'http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C2_T1_G1.html'),
+        ('GRUP 1', 'http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T2_G1.html'),
     ],
     '3r Trimestre': [
-        ('GRUP 1', 'http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C3_T1_G1.html'),
+        ('GRUP 1', 'http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T3_G1.html'),
     ],
 }

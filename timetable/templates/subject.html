@@ -1,10 +1,68 @@
 {% extends "base.html" %}
 
+{% block header %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+    // Accents remover. Helps with fuzzy search
+    accentsTidy = function(s){
+        var r=s.toLowerCase();
+        r = r.replace(new RegExp("\\s", 'g'),"");
+        r = r.replace(new RegExp("[àáâãäå]", 'g'),"a");
+        r = r.replace(new RegExp("æ", 'g'),"ae");
+        r = r.replace(new RegExp("ç", 'g'),"c");
+        r = r.replace(new RegExp("[èéêë]", 'g'),"e");
+        r = r.replace(new RegExp("[ìíîï]", 'g'),"i");
+        r = r.replace(new RegExp("ñ", 'g'),"n");                            
+        r = r.replace(new RegExp("[òóôõö]", 'g'),"o");
+        r = r.replace(new RegExp("œ", 'g'),"oe");
+        r = r.replace(new RegExp("[ùúûü]", 'g'),"u");
+        r = r.replace(new RegExp("[ýÿ]", 'g'),"y");
+        r = r.replace(new RegExp("\\W", 'g'),"");
+        return r;
+    };
+
+    // Javascript subject filter with fuzzy search (sublime go-to-anything panel style)
+    function filtersubjects(){
+        var filter = accentsTidy($("#searchbar").val()).replace(/ /g,'');
+        var reg = new RegExp(filter.split('').join('\\w*').replace(/\W/, ""), 'i');
+        $(':checkbox:not(:checked) + label').each(function(){
+            var subject = accentsTidy($(this).text()).replace(/ /g,'');
+            if (!subject.match(reg)) {
+                $(this).hide()
+            }
+            else {
+                $(this).show()
+            };
+        });
+    };
+
+    // Focuses search bar on load
+    $("#searchbar").focus();
+    // Focuses search bar every time anything else is clicked
+    // the setTimeout(function()) is kind of a hack. Otherwise does not work.
+    $("#searchbar").blur(function(){
+        var searchbar = this
+        setTimeout(function() {
+            searchbar.focus()
+        }, 5);
+    });
+    $("#searchbar").keyup(filtersubjects);
+    $("label").click(function(){
+        // calls filtersubjects when label is clicked (maybe it has to go away)
+        // the timeout is needed for the checkbox to become unchecked
+        setTimeout(filtersubjects, 1);
+    });
+});
+</script>
+{% endblock %}
+
+
 {% block content %}
 <h1>Quines assignatures curses?</h1>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
+<input id="searchbar" type="search" placeholder="Busca assignatura...">
 <form action="{% url 'calendar' %}" method="post">
 {% csrf_token %}
 {% for year, degree_subjects in year_degree_subjects %}
@@ -13,7 +71,7 @@
     {% for degree_subject in degree_subjects %}
         <li>
             <input type="checkbox" name="degree_subject" id="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}" />
-            <label for="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}">{{ degree_subject.subject__name }} {{degree_subject.year}} {{degree_subject.group}}</label>
+            <label for="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}">{{ degree_subject.subject__name }} <em>{{degree_subject.group}}</em></label>
         </li>
     {% endfor %}
     </ul>

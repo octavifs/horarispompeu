@@ -1,0 +1,114 @@
+body, html {
+  height: 100%;
+}
+body {
+  background-image: url('ios-linen-tile.jpg')
+}
+
+#wrapper {
+  width: 800px;
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 20px auto -70px; /* the bottom margin is the negative value of the footer's height */
+  background-color: #f0f0f0;
+  box-shadow: 0px 10px 100px;
+  font-family: georgia, serif;
+}
+
+#header {
+  background-color: #C8202E;
+  background-image: url('logo.png');
+  background-repeat: no-repeat;
+  background-size: 50%;
+  background-position: 200px 0;
+  height: 100px;
+  color: #fff;
+}
+
+#calendar {
+  color: #fff;
+  border: 3px solid #FFF;
+  height: 60px;
+  width: 60px;
+  text-align: center;
+  font-variant: small-caps;
+  position: relative;
+  left: 75px;
+  top: 15px;
+}
+
+#cal_month {
+  border-bottom: 3px solid #FFF;
+}
+
+#cal_day {
+  line-height: 40px;
+}
+
+#content {
+  padding: 20px;
+  padding-bottom: 150px;
+}
+
+#footer, #push {
+  height: 70px;
+}
+
+#footer {
+  width: 760px;
+  margin: 0 auto;
+  font-family: Monaco, monospace;
+  font-size: 10px;
+  color: #afafaf;
+  border-top: 1px solid #cbcbcb;
+}
+
+#footer a:link {color:#a5a5a6;}      /* unvisited link */
+#footer a:visited {color:#4183c4;}  /* visited link */
+#footer a:active {color:#4183c4;}  /* selected link */
+
+h1 {
+  font-size: 2em;
+  color: #C8202E;
+  font-variant: small-caps;
+}
+
+h2 {
+  font-size: 1em;
+  color: #C8202E;
+  border-bottom: 1px solid #C8202E;
+}
+
+ul {
+  padding: 0;
+}
+li {
+  list-style-type: none;
+  margin: 5px 0;
+}
+
+li > input[type=checkbox] {
+  display: none;
+  margin: 0;
+}
+
+input[type=checkbox] + label {
+  display: inline-block;
+  width: 50%;
+  height: 30px;
+  padding: 0 20px;
+  line-height: 30px;
+  background-color:#FFF;
+  border: 2px solid #FFF;
+}
+
+input[type=checkbox] + label:hover {
+  border: 2px solid #C8202E;
+  color: #C8202E;
+}
+
+input[type=checkbox]:checked + label {
+  background-color:#C8202E;
+  color: #FFFFFF;
+}

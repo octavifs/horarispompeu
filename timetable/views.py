@@ -72,7 +72,10 @@ def subject(request):
         'group',
         'year'
     ).distinct()
-    context = {'degree_subjects': degree_subjects}
+    year_degree_subjects = {}
+    for degree_subject in degree_subjects:
+        year_degree_subjects.setdefault(degree_subject['year'], []).append(degree_subject)
+    context = {'year_degree_subjects': sorted(year_degree_subjects.iteritems())}
     return render(request, 'subject.html', context)
 
 

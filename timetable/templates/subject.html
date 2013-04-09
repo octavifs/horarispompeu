@@ -7,14 +7,17 @@
 
 <form action="{% url 'calendar' %}" method="post">
 {% csrf_token %}
-<ul>
-{% for degree_subject in degree_subjects %}
-    <li>
-        <input type="checkbox" name="degree_subject" id="degree_subject{{ forloop.counter }}" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}" />
-        <label for="degree_subject{{ forloop.counter }}">{{ degree_subject.subject__name }} {{degree_subject.year}} {{degree_subject.group}}</label>
-    </li>
+{% for year, degree_subjects in year_degree_subjects %}
+    <h2>{{ year }}</h2>
+    <ul>
+    {% for degree_subject in degree_subjects %}
+        <li>
+            <input type="checkbox" name="degree_subject" id="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}" />
+            <label for="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}">{{ degree_subject.subject__name }} {{degree_subject.year}} {{degree_subject.group}}</label>
+        </li>
+    {% endfor %}
+    </ul>
 {% endfor %}
-</ul>
 <input type="submit" value="Next" />
 </form>
 {% endblock %}

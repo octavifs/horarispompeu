@@ -1,20 +1,51 @@
+{% load staticfiles %}
+
 <!DOCTYPE html>
 <html lang="ca">
 <head>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="{% static "style.css" %}" />
     <title>Horaris Pompeu. Crea el teu propi horari i oblida-te'n</title>
 </head>
 
 <body>
-    <div id="header">
-    </div>
+    <div id="wrapper">
+        <div id="header">
+            <div id="calendar">
+                <div id="cal_month">Març</div>
+                <div id="cal_day">25</div>
+            </div>
+        </div>
 
-    <div id="content">
-        {% block content %}
-        {% endblock %}
+        <div id="content">
+            {% block content %}
+            <h1>Títol de prova</h1>
+            <h2>Subtítol de prova</h2>
+            <ul>
+                <li>
+                    <input type="checkbox" name="prova" id="prova1" value="prova1" />
+                    <label for="prova1">Label de prova 1</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="prova" id="prova2" value="prova2" />
+                    <label for="prova2">Label de prova2</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="prova" id="prova3" value="prova3" />
+                    <label for="prova3">Label de prova3</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="prova" id="prova4" value="prova4" />
+                    <label for="prova4">Label de prova4</label>
+                </li>
+            </ul>
+            <input type="submit" value="Next" />
+            {% endblock %}
+        </div>
+        <div id="push"></div>
     </div>
-
     <div id="footer">
+        <p>Powered by Django</p>
+        <p>Check the source code on <a href="https://github.com/octavifs/horarispompeu">GitHub</a></p>
     </div>
 </body>
 </html>

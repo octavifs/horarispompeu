@@ -44,7 +44,7 @@ $(document).ready(function(){
     $("#searchbar").blur(function(){
         var searchbar = this
         setTimeout(function() {
-            searchbar.focus()
+            searchbar.select()
         }, 5);
     });
     $("#searchbar").keyup(filtersubjects);

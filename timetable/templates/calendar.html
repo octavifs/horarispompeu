@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>Subscriu-te al teu calendari</h1>
-<a href="{{ calendar_url }}">{{ calendar_url }}</a>
+<input type="text" readonly="" spellcheck="false" id="calendar_url" value="{{ calendar_url }}" onclick=this.select()>
 <h2>Com afegir el calendari</h2>
 <p>1. Copia la URL superior</p>
 <p>2. Entra al teu Google Calendar</p>

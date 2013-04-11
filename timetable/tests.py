@@ -9,9 +9,12 @@ from __future__ import unicode_literals
 from django.test import TestCase
 from django.db import IntegrityError
 from django.core.files.base import ContentFile
+import codecs
 from timetable.models import *
 import datetime
 import timetable.calendar
+import timetable.updater
+import timetable.management.commands._parser as parser
 
 
 class DatabaseTests(TestCase):
@@ -107,3 +110,50 @@ class DatabaseTests(TestCase):
 
 class CalendarCreationTests(TestCase):
         pass
+
+
+class CalendarUpdateTests(TestCase):
+    def test_equality_same_timetable_html(self):
+        with open('resources/calendar_html/horari1_old.html') as f:
+            timetable_html = f.read()
+        isEqual = timetable.updater.is_html_equal(timetable_html, timetable_html)
+        self.assertTrue(isEqual)
+
+    def test_inequality_different_timetable_html(self):
+        with open('resources/calendar_html/horari1_old.html') as f:
+            timetable_html_old = f.read()
+        with open('resources/calendar_html/horari1_new.html') as f:
+            timetable_html_new = f.read()
+        isEqual = timetable.updater.is_html_equal(timetable_html_old, timetable_html_new)
+        self.assertFalse(isEqual)
+
+    def test_substracted_lessons(self):
+        with codecs.open('resources/calendar_html/horari1_old.html') as f:
+            timetable_html_old = f.read()
+        with codecs.open('resources/calendar_html/horari1_new.html') as f:
+            timetable_html_new = f.read()
+        lessons = timetable.updater.substracted_lessons(timetable_html_old, timetable_html_new)
+        self.assertEqual(len(lessons), 1)
+
+    def test_added_lessons(self):
+        with codecs.open('resources/calendar_html/horari1_old.html') as f:
+            timetable_html_old = f.read()
+        with codecs.open('resources/calendar_html/horari1_new.html') as f:
+            timetable_html_new = f.read()
+        lessons = timetable.updater.added_lessons(timetable_html_old, timetable_html_new)
+        self.assertEqual(len(lessons), 1)
+
+    def test_parser_lesson_equality(self):
+        lesson1 = parser.Lesson()
+        lesson1.raw_data = "Class 1. Bla, bla, bla"
+        lesson2 = parser.Lesson()
+        lesson2.raw_data = lesson1.raw_data
+        self.assertEqual(lesson1, lesson2)
+
+    def test_parser_lesson_inequality(self):
+        lesson1 = parser.Lesson()
+        lesson1.raw_data = "Class 1. Bla, bla, bla"
+        lesson2 = parser.Lesson()
+        lesson2.raw_data = "Something else from Class 1"
+        self.assertNotEqual(lesson1, lesson2)
+

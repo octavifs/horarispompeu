@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
 from django.db import IntegrityError
-from copy import copy
 
 
 class Faculty(models.Model):
@@ -64,8 +63,8 @@ class SubjectDuplicate(models.Model):
 def _subject_delete(sender, instance, **kwargs):
     try:
         fields = {
-            'faculty': copy(instance.faculty),
-            'name': copy(instance.name),
+            'faculty': instance.faculty,
+            'name': instance.name,
         }
         print fields
         duplicate = SubjectDuplicate(**fields)
@@ -167,3 +166,49 @@ class Calendar(models.Model):
     name = models.CharField(max_length=128, primary_key=True, blank=False)
     file = models.FileField(upload_to='.')
     degree_subjects = models.ManyToManyField(DegreeSubject)
+
+#
+# Models and signals necessary to handle the archiving of added and deleted
+# Lessons
+#
+
+class LessonArchive(Lesson):
+    pass
+
+class LessonInsert(models.Model):
+    # Delete entry if Lesson is removed
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+class LessonDelete(models.Model):
+    lesson = models.ForeignKey(LessonArchive)
+    date = models.DateTimeField(auto_now_add=True)
+
+@receiver(post_save, sender=Lesson)
+def _lesson_insert(sender, instance, **kwargs):
+    try:
+        inserted_record = LessonInsert(lesson=instance)
+        inserted_record.save()
+    except IntegrityError, e:
+        print e
+
+@receiver(post_delete, sender=Lesson)
+def _lesson_delete(sender, instance, **kwargs):
+    try:
+        fields = {
+            'subject': instance.subject
+            'group': instance.group
+            'subgroup': instance.subgroup
+            'kind': instance.kind
+            'room': instance.room
+            'date_start': instance.date_start
+            'date_end': instance.date_end
+            'academic_year': instance.academic_year
+            'raw_entry': instance.raw_entry
+        }
+        archived_lesson = LessonArchive(**fields)
+        archived_lesson.save()
+        deleted_record = LessonDelete(lesson=archived_lesson)
+        deleted_record.save()
+    except IntegrityError, e:
+        print e

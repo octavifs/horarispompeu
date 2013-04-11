@@ -21,7 +21,7 @@ class Lesson(object):
     raw_data = ""
 
     def __key(self):
-        return (self.raw_data,)
+        return (self.subject, self.kind, self.group, self.room, self.date_start, self.date_end)
 
     def __hash__(self):
         # As suggested in: http://stackoverflow.com/a/2909119
@@ -29,7 +29,7 @@ class Lesson(object):
 
     def __eq__(self, other):
         if type(other) is type(self):
-            return self.__key() == self.__key()
+            return other.__key() == self.__key()
         return False
 
     def __ne__(self, other):

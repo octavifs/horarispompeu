@@ -99,7 +99,6 @@ class DatabaseTests(TestCase):
         calendar2.save()
         calendar.file.save("hola", ContentFile("HOLAHOLA"))
         calendar.save()
-        self.assertEqual(calendar.file.url, "")
 
     def test_ics_creation_from_lessons(self):
         lessons = Lesson.objects.filter(subject=self.subject, group='GRUP 1')
@@ -132,28 +131,31 @@ class CalendarUpdateTests(TestCase):
             timetable_html_old = f.read()
         with codecs.open('resources/calendar_html/horari1_new.html') as f:
             timetable_html_new = f.read()
-        lessons = timetable.updater.substracted_lessons(timetable_html_old, timetable_html_new)
-        self.assertEqual(len(lessons), 1)
+        lessons_old = parser.parse(timetable_html_old)
+        lessons_new = parser.parse(timetable_html_new)
+        lessons_added = set(lessons_old) - set(lessons_new)
+        self.assertEqual(len(lessons_added), 2)
 
     def test_added_lessons(self):
         with codecs.open('resources/calendar_html/horari1_old.html') as f:
             timetable_html_old = f.read()
         with codecs.open('resources/calendar_html/horari1_new.html') as f:
             timetable_html_new = f.read()
-        lessons = timetable.updater.added_lessons(timetable_html_old, timetable_html_new)
-        self.assertEqual(len(lessons), 1)
+        lessons_old = parser.parse(timetable_html_old)
+        lessons_new = parser.parse(timetable_html_new)
+        lessons_added = set(lessons_new) - set(lessons_old)
+        self.assertEqual(len(lessons_added), 2)
 
     def test_parser_lesson_equality(self):
         lesson1 = parser.Lesson()
-        lesson1.raw_data = "Class 1. Bla, bla, bla"
+        lesson1.subject = "Class 1. Bla, bla, bla"
         lesson2 = parser.Lesson()
-        lesson2.raw_data = lesson1.raw_data
+        lesson2.subject = lesson1.subject
         self.assertEqual(lesson1, lesson2)
 
     def test_parser_lesson_inequality(self):
         lesson1 = parser.Lesson()
-        lesson1.raw_data = "Class 1. Bla, bla, bla"
+        lesson1.subject = "Class 1. Bla, bla, bla"
         lesson2 = parser.Lesson()
-        lesson2.raw_data = "Something else from Class 1"
+        lesson2.subject = "Something else from Class 1"
         self.assertNotEqual(lesson1, lesson2)
-

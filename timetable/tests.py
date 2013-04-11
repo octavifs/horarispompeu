@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 from django.test import TestCase
 from django.db import IntegrityError
 from django.core.files.base import ContentFile
-import codecs
 from timetable.models import *
 import datetime
 import timetable.calendar
@@ -112,39 +111,64 @@ class CalendarCreationTests(TestCase):
 
 
 class CalendarUpdateTests(TestCase):
+    """
+    Tests to ensure that the functionality to detect added and removed classes
+    is working. Tests that the hash() function returns different values in
+    different strings (to detect changes in the html) and that the Lesson class
+    from the _parser module has the necessary properties to operate as a set, so
+    we can perform differences.
+    """
     def test_equality_same_timetable_html(self):
+        """Test if 2 calendars are equal"""
         with open('resources/calendar_html/horari1_old.html') as f:
             timetable_html = f.read()
-        isEqual = timetable.updater.is_html_equal(timetable_html, timetable_html)
-        self.assertTrue(isEqual)
+        self.assertEqual(hash(timetable_html), hash(timetable_html))
 
     def test_inequality_different_timetable_html(self):
+        """Test if 2 calendars are different"""
         with open('resources/calendar_html/horari1_old.html') as f:
             timetable_html_old = f.read()
         with open('resources/calendar_html/horari1_new.html') as f:
             timetable_html_new = f.read()
-        isEqual = timetable.updater.is_html_equal(timetable_html_old, timetable_html_new)
-        self.assertFalse(isEqual)
+        self.assertNotEqual(hash(timetable_html_old), hash(timetable_html_new))
 
-    def test_substracted_lessons(self):
-        with codecs.open('resources/calendar_html/horari1_old.html') as f:
-            timetable_html_old = f.read()
-        with codecs.open('resources/calendar_html/horari1_new.html') as f:
-            timetable_html_new = f.read()
-        lessons_old = parser.parse(timetable_html_old)
-        lessons_new = parser.parse(timetable_html_new)
-        lessons_added = set(lessons_old) - set(lessons_new)
-        self.assertEqual(len(lessons_added), 2)
+    def test_deleted_lessons(self):
+        """Test difference operation with a set of Lessons. This is equivalent
+        to a LEFT OUTER JOIN. That is, we only keep the distinct entries on the
+        leftmost set. We will use this to get the deleted classes in an update.
+        """
+        lessonA = parser.Lesson()
+        lessonA.subject = "A"
+        lessonB = parser.Lesson()
+        lessonB.subject = "B"
+        lessonC = parser.Lesson()
+        lessonC.subject = "C"
+        lessonD = parser.Lesson()
+        lessonD.subject = "D"
+        lessons_old = set([lessonA, lessonB, lessonC])
+        lessons_new = set([lessonB, lessonC, lessonD])
+        # Lessons deleted should only hold lessonA
+        lessons_deleted = set(lessons_old) - set(lessons_new)
+        self.assertEqual(lessons_deleted.pop(), lessonA)
 
     def test_added_lessons(self):
-        with codecs.open('resources/calendar_html/horari1_old.html') as f:
-            timetable_html_old = f.read()
-        with codecs.open('resources/calendar_html/horari1_new.html') as f:
-            timetable_html_new = f.read()
-        lessons_old = parser.parse(timetable_html_old)
-        lessons_new = parser.parse(timetable_html_new)
+        """Test difference operation with a set of Lessons. This is equivalent
+        to a RIGHT OUTER JOIN. That is, we only keep the distinct entries on the
+        rightmost set. We will use this to get the added classes in an update.
+        """
+        lessonA = parser.Lesson()
+        lessonA.subject = "A"
+        lessonB = parser.Lesson()
+        lessonB.subject = "B"
+        lessonC = parser.Lesson()
+        lessonC.subject = "C"
+        lessonD = parser.Lesson()
+        lessonD.subject = "D"
+        lessons_old = set([lessonA, lessonB, lessonC])
+        lessons_new = set([lessonB, lessonC, lessonD])
         lessons_added = set(lessons_new) - set(lessons_old)
-        self.assertEqual(len(lessons_added), 2)
+        # Lessons added should only hold lessonD
+        self.assertEqual(lessons_added.pop(), lessonD)
 
     def test_parser_lesson_equality(self):
         lesson1 = parser.Lesson()

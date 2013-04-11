@@ -20,6 +20,21 @@ class Lesson(object):
     date_end = ""
     raw_data = ""
 
+    def __key(self):
+        return (self.raw_data,)
+
+    def __hash__(self):
+        # As suggested in: http://stackoverflow.com/a/2909119
+        return hash(self.__key())
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__key() == self.__key()
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __str__(self):
         rep = "<Lesson object>\n"
         rep += "subject: " + repr(self.subject) + "\n"
@@ -28,7 +43,11 @@ class Lesson(object):
         rep += "room: " + repr(self.room) + "\n"
         rep += "date_start: " + repr(self.date_start) + "\n"
         rep += "date_end: " + repr(self.date_end) + "\n"
-        return rep
+        #return rep
+        return self.raw_data
+
+    def __repr__(self):
+        return self.raw_data
 
     def copy(self):
         return copy.deepcopy(self)

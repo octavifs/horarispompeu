@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 from bs4 import BeautifulSoup
 from datetime import date, time, datetime
-from pytz import timezone
 from icalendar import Calendar, Event
 from StringIO import StringIO
 import copy
@@ -67,12 +66,11 @@ def parsedays(row):
 
 
 def parsehours(text):
-    tz = timezone('Europe/Madrid')
     hours_str = text.strip().replace('.', ':').split("-")
     h_init_list = [int(data) for data in hours_str[0].split(":")]
     h_end_list = [int(data) for data in hours_str[1].split(":")]
-    h_init = time(*h_init_list, tzinfo=tz)
-    h_end = time(*h_end_list, tzinfo=tz)
+    h_init = time(*h_init_list)
+    h_end = time(*h_end_list)
     return h_init, h_end
 
 

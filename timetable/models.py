@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
 from django.dispatch.dispatcher import receiver
 from django.db import IntegrityError
 
@@ -196,14 +197,14 @@ def _lesson_insert(sender, instance, **kwargs):
 def _lesson_delete(sender, instance, **kwargs):
     try:
         fields = {
-            'subject': instance.subject
-            'group': instance.group
-            'subgroup': instance.subgroup
-            'kind': instance.kind
-            'room': instance.room
-            'date_start': instance.date_start
-            'date_end': instance.date_end
-            'academic_year': instance.academic_year
+            'subject': instance.subject,
+            'group': instance.group,
+            'subgroup': instance.subgroup,
+            'kind': instance.kind,
+            'room': instance.room,
+            'date_start': instance.date_start,
+            'date_end': instance.date_end,
+            'academic_year': instance.academic_year,
             'raw_entry': instance.raw_entry
         }
         archived_lesson = LessonArchive(**fields)

@@ -103,7 +103,7 @@ GROUP_CHOICES = (
 )
 
 
-class Lesson(models.Model):
+class LessonCommon(models.Model):
     subject = models.ForeignKey(Subject, null=True, blank=True)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
     subgroup = models.CharField(max_length=50, blank=True)
@@ -115,11 +115,8 @@ class Lesson(models.Model):
     raw_entry = models.TextField()
 
     class Meta:
+        abstract = True
         ordering = ("-academic_year", "date_start", "subject", "group")
-        verbose_name_plural = 'Lessons'
-        # Don't allow duplicate entries
-        unique_together = ("subject", "group", "subgroup", "kind", "room",
-                           "date_start", "date_end", "academic_year")
 
     def __unicode__(self):
         rep = [
@@ -132,6 +129,14 @@ class Lesson(models.Model):
             "date_end: " + repr(self.date_end),
         ]
         return '\n'.join(rep)
+
+
+class Lesson(LessonCommon):
+    class Meta:
+        verbose_name_plural = 'Lessons'
+        # Don't allow duplicate entries
+        unique_together = ("subject", "group", "subgroup", "kind", "room",
+                           "date_start", "date_end", "academic_year")
 
 
 class DegreeSubject(models.Model):
@@ -168,22 +173,32 @@ class Calendar(models.Model):
     file = models.FileField(upload_to='.')
     degree_subjects = models.ManyToManyField(DegreeSubject)
 
+
 #
 # Models and signals necessary to handle the archiving of added and deleted
 # Lessons
 #
+class LessonArchive(LessonCommon):
+    class Meta:
+        verbose_name_plural = 'Lessons Archives'
 
-class LessonArchive(Lesson):
-    pass
 
 class LessonInsert(models.Model):
     # Delete entry if Lesson is removed
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ("-date",)
+
+
 class LessonDelete(models.Model):
-    lesson = models.ForeignKey(LessonArchive)
+    lesson = models.ForeignKey(LessonArchive, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-date",)
+
 
 @receiver(post_save, sender=Lesson)
 def _lesson_insert(sender, instance, **kwargs):
@@ -192,6 +207,7 @@ def _lesson_insert(sender, instance, **kwargs):
         inserted_record.save()
     except IntegrityError, e:
         print e
+
 
 @receiver(post_delete, sender=Lesson)
 def _lesson_delete(sender, instance, **kwargs):
@@ -213,3 +229,13 @@ def _lesson_delete(sender, instance, **kwargs):
         deleted_record.save()
     except IntegrityError, e:
         print e
+
+
+@receiver(post_delete, sender=LessonDelete)
+def _lessondelete_delete(sender, instance, **kwargs):
+    try:
+        instance.lesson.delete()
+    except IntegrityError, e:
+        print e
+    except LessonArchive.DoesNotExist:
+        pass

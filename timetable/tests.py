@@ -105,6 +105,51 @@ class DatabaseTests(TestCase):
         ics_string = b'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendari HorarisPompeu.com//mxm.dk//\r\nX-WR-CALNAME:horarispompeu.com\r\nBEGIN:VEVENT\r\nSUMMARY:TEORIA  \xc3\x80lgebra\r\nDTSTART;VALUE=DATE-TIME:20130404T083000Z\r\nDTEND;VALUE=DATE-TIME:20130404T103000Z\r\nLOCATION:52.349\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
         self.assertEqual(calendar, ics_string)
 
+    def test_lesson_create_lessoninsert_create(self):
+        lesson_insert = LessonInsert.objects.filter(lesson=self.lesson)
+        self.assertEqual(len(lesson_insert), 1)
+
+    def test_lesson_delete_lessoninsert_delete(self):
+        self.lesson.delete()
+        lesson_insert = LessonInsert.objects.filter(lesson=self.lesson)
+        self.assertEqual(len(lesson_insert), 0)
+
+    def test_lesson_delete_lessondelete_create(self):
+        self.lesson.delete()
+        lesson_delete = LessonDelete.objects.all()
+        self.assertEqual(len(lesson_delete), 1)
+
+    def test_lesson_delete_lessonarchive_create(self):
+        self.lesson.delete()
+        lesson_archive = LessonArchive.objects.all()
+        self.assertEqual(len(lesson_archive), 1)
+
+    def test_lessonarchive_delete(self):
+        self.lesson.delete()
+        lesson_archive = LessonArchive.objects.all()[0]
+        lesson_archive.delete()
+        self.assertEqual(lesson_archive.id, None)
+
+    def test_lessonarchive_delete_lesson_not_recreate(self):
+        self.lesson.delete()
+        lesson_archive = LessonArchive.objects.all()[0]
+        lesson_archive.delete()
+        self.assertEqual(self.lesson.id, None)
+
+    def test_lessonarchive_delete_lessondelete_delete(self):
+        self.lesson.delete()
+        lesson_archive = LessonArchive.objects.all()[0]
+        lesson_archive.delete()
+        lesson_deletes = LessonDelete.objects.all()
+        self.assertEqual(len(lesson_deletes), 0)
+
+    def test_lessondelete_delete_lessonarchive_delete(self):
+        self.lesson.delete()
+        lesson_delete = LessonDelete.objects.all()[0]
+        lesson_delete.delete()
+        lesson_archives = LessonArchive.objects.all()
+        self.assertEqual(len(lesson_archives), 0)
+
 
 class CalendarCreationTests(TestCase):
         pass

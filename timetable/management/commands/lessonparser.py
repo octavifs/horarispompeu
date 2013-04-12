@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 from django.core.management.base import NoArgsCommand
-from django.db import IntegrityError
+from django.db.utils import IntegrityError
 import requests
 from timetable.models import *
 from _esup_timetable_data import *
@@ -15,14 +15,14 @@ class Command(NoArgsCommand):
         for degree, years in COMPULSORY_SUBJECTS_TIMETABLES.iteritems():
             for year, terms in years.iteritems():
                 for term, groups in terms.iteritems():
-                    for group, url in groups:
+                    for group, url, file_path in groups:
                         print url
                         html = requests.get(url).text
                         self.parse(degree, year, term, group, html)
                         print ""
         for degree in COMPULSORY_SUBJECTS_TIMETABLES:
             for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
-                for group, url in groups:
+                for group, url, file_path in groups:
                     print url
                     html = requests.get(url).text
                     self.parse(degree, "optatives", term, group, html)
@@ -47,7 +47,8 @@ class Command(NoArgsCommand):
             )
             try:
                 degreesubject.save()
-            except Exception:
+            except IntegrityError:
+                # This will trigger when trying to add a duplicate entry
                 pass
         # create lessons
         for entry in lessons:
@@ -67,5 +68,6 @@ class Command(NoArgsCommand):
             )
             try:
                 lesson.save()
-            except Exception, e:
-                print e
+            except IntegrityError:
+                # This will trigger when trying to add a duplicate entry
+                pass

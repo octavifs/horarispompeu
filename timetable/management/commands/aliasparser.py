@@ -15,12 +15,12 @@ class Command(NoArgsCommand):
         for degree, years in COMPULSORY_SUBJECTS_TIMETABLES.iteritems():
             for year, terms in years.iteritems():
                 for term, groups in terms.iteritems():
-                    for group, url in groups:
+                    for group, url, _ in groups:
                         print url
                         html = requests.get(url).text
                         self.parse(html)
         for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
-            for group, url in groups:
+            for group, url, _ in groups:
                 print url
                 html = requests.get(url).text
                 self.parse(html)

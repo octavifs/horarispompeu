@@ -167,6 +167,16 @@ class DegreeSubject(models.Model):
     def __unicode__(self):
         return " ".join([self.subject.name, self.degree.name, self.year, self.term])
 
+    def lessons(self):
+        """
+        Returns QuerySet with the lessons associated to the DegreeSubject
+        """
+        return Lesson.objects.filter(
+            subject=self.subject,
+            academic_year=self.academic_year,
+            group=self.group
+        )
+
 
 class Calendar(models.Model):
     name = models.CharField(max_length=128, primary_key=True, blank=False)

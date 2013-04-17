@@ -5,7 +5,7 @@ when you run "manage.py test".
 
 Replace this with more appropriate tests for your application.
 """
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 from django.test import TestCase
 from django.db import IntegrityError
 from django.core.files.base import ContentFile
@@ -14,6 +14,10 @@ import datetime
 import timetable.calendar
 import timetable.updater
 import timetable.management.commands._parser as parser
+import timetable.management.commands.lessonparser as lessonparser
+import timetable.management.commands.initdb as initdb
+import timetable.management.commands.aliasparser as aliasparser
+import timetable.management.commands.subjectparser as subjectparser
 
 
 class DatabaseTests(TestCase):
@@ -102,7 +106,7 @@ class DatabaseTests(TestCase):
     def test_ics_creation_from_lessons(self):
         lessons = Lesson.objects.filter(subject=self.subject, group='GRUP 1')
         calendar = timetable.calendar.generate(lessons)
-        ics_string = b'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendari HorarisPompeu.com//mxm.dk//\r\nX-WR-CALNAME:horarispompeu.com\r\nBEGIN:VEVENT\r\nSUMMARY:TEORIA  \xc3\x80lgebra\r\nDTSTART;VALUE=DATE-TIME:20130404T083000Z\r\nDTEND;VALUE=DATE-TIME:20130404T103000Z\r\nLOCATION:52.349\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
+        ics_string = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendari HorarisPompeu.com//mxm.dk//\r\nX-WR-CALNAME:horarispompeu.com\r\nBEGIN:VEVENT\r\nSUMMARY:TEORIA  \xc3\x80lgebra\r\nDTSTART;VALUE=DATE-TIME:20130404T103000\r\nDTEND;VALUE=DATE-TIME:20130404T123000\r\nLOCATION:52.349\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
         self.assertEqual(calendar, ics_string)
 
     def test_lesson_create_lessoninsert_create(self):
@@ -228,3 +232,86 @@ class CalendarUpdateTests(TestCase):
         lesson2 = parser.Lesson()
         lesson2.subject = "Something else from Class 1"
         self.assertNotEqual(lesson1, lesson2)
+
+    def test_lesson_is_deleted_when_change(self):
+        """Test that when a source calendar is changed, the old entries are deleted"""
+        url = "https://dl.dropboxusercontent.com/u/659835/test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        # Load the database
+        initdb.Command().handle_noargs()
+        subjectparser.Command().handle_noargs()
+        # Parse old html lessons & put them into DB
+        f = open(file_path)
+        old_html = f.read()
+        f.close()
+        lessons = parser.parse(old_html)
+        command = lessonparser.Command()
+        command.insert(
+            inserted_lessons=lessons,
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+        )
+        # Update lessons with the "new" url
+        command.update(
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+            url=url,
+            file_path=file_path
+        )
+        alias = SubjectAlias.objects.get(name="Càlcul i Mètodes Numèrics")
+        self.assertRaises(
+            Lesson.DoesNotExist,
+            Lesson.objects.get,
+            subject=alias.subject,
+            group="GRUP 1",
+            subgroup="",
+            kind="TEORIA",
+            room="52.119",
+            date_start=datetime.datetime(2012, 9, 25, 16, 30, 00),
+            date_end=datetime.datetime(2012, 9, 25, 18, 30, 00),
+        )
+
+    def test_lesson_is_inserted_when_change(self):
+        """Test that when a source calendar is changed, the new entries are inserted"""
+        url = "https://dl.dropboxusercontent.com/u/659835/test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        # Load the database
+        initdb.Command().handle_noargs()
+        subjectparser.Command().handle_noargs()
+        # Parse old html lessons & put them into DB
+        f = open(file_path)
+        old_html = f.read()
+        f.close()
+        lessons = parser.parse(old_html)
+        command = lessonparser.Command()
+        command.insert(
+            inserted_lessons=lessons,
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+        )
+        # Update lessons with the "new" url
+        command.update(
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+            url=url,
+            file_path=file_path
+        )
+        alias = SubjectAlias.objects.get(name="Economia del Coneixement")
+        lesson = Lesson.objects.get(
+            subject=alias.subject,
+            group="GRUP 1",
+            subgroup="",
+            kind="TEORIA",
+            room="52.119",
+            date_start=datetime.datetime(2012, 9, 25, 16, 30, 00),
+            date_end=datetime.datetime(2012, 9, 25, 18, 30, 00),
+        )
+        self.assertNotEqual(lesson, None)

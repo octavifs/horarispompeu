@@ -6,6 +6,7 @@ import requests
 from timetable.models import *
 from _esup_timetable_data import *
 import _parser as parser
+import timetable.calendar
 
 
 class Command(NoArgsCommand):
@@ -61,8 +62,8 @@ class Command(NoArgsCommand):
         # Parse new html into a set of parser.Lessons
         new_lessons = set(parser.parse(new_html))
         # Compute deleted & the inserted lessons.
-        deleted_lessons = old_lessons - new_lessons
-        inserted_lessons = new_lessons - old_lessons
+        deleted_lessons = old_lessons - new_lessons  # set difference
+        inserted_lessons = new_lessons - old_lessons  # set difference
         # Delete outdated lessons
         self.delete(deleted_lessons, degree, year, term, group)
         # Insert updated lessons
@@ -76,12 +77,18 @@ class Command(NoArgsCommand):
             # If old html could not be written. Alert about it but go on
             print "Could not write " + file_path
             print "HTML not updated"
+        # Update ICS calendars
+        #modified_lessons = deleted_lessons | inserted_lessons  # set union
+        #self.update_calendars(modified_lessons, degree, year, term, group)
 
     def delete(self, deleted_lessons, degree, year, term, group):
         academic_year = AcademicYear.objects.get(year='2012-13')
         for entry in deleted_lessons:
             alias = entry.subject
-            subject = SubjectAlias.objects.filter(name=alias)[0].subject
+            try:
+                subject = SubjectAlias.objects.get(name=alias).subject
+            except SubjectAlias.DoesNotExist, e:
+                raise e
             try:
                 lesson = Lesson.objects.get(
                     subject=subject,
@@ -99,11 +106,14 @@ class Command(NoArgsCommand):
 
     def insert(self, inserted_lessons, degree, year, term, group):
         faculty = Faculty.objects.get(name='ESUP')
-        academic_year = AcademicYear(year='2012-13')
+        academic_year = AcademicYear.objects.get(year='2012-13')
         # create degreesubjects
         for entry in inserted_lessons:
             alias = entry.subject
-            subject = SubjectAlias.objects.get(name=alias).subject
+            try:
+                subject = SubjectAlias.objects.get(name=alias).subject
+            except SubjectAlias.DoesNotExist, e:
+                raise e
             degree_obj = Degree.objects.get(name=degree, faculty=faculty)
             degreesubject = DegreeSubject(
                 subject=subject,
@@ -138,3 +148,25 @@ class Command(NoArgsCommand):
             except IntegrityError:
                 # This will trigger when trying to add a duplicate entry
                 pass
+
+    def update_calendars(self, subjects):
+        faculty = Faculty.objects.get(name='ESUP')
+        degree_obj = Degree.objects.get(name=degree, faculty=faculty)
+        academic_year = AcademicYear.objects.get(year='2012-13')
+        modified_degreesubjects = set()
+        for lesson in modified_lessons:
+            subject = SubjectAlias.objects.get(name=lesson.subject).subject
+            degreesubject = DegreeSubject(
+                subject=subject,
+                degree=degree_obj,
+                academic_year=academic_year,
+                year=year,
+                term=term,
+                group=group
+            )
+            modified_subjects.add(degreesubject)
+        modified_calendars = Calendar.objects.filter(
+            degreesubjects__in=modified_degreesubjects
+        ).distinct()
+        map(timetable.calendar.regenerate, modified_calendars)  # TODO: Retrieve ical and save it to
+        # calendar object. I could probably pass the calendar as a parameter, and update them?

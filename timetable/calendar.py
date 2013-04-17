@@ -24,3 +24,13 @@ def generate(lessons):
         event.add('location', entry.room)
         cal.add_component(event)
     return cal.to_ical()
+
+def regenerate(calendar):
+    """
+    Redoes a calendar
+    """
+    # Select lessons. Maybe we could do this in DegreeSubject object, as a custom query already
+    lessons = []
+    # Regenerate calendar
+    return generate(lessons)
+

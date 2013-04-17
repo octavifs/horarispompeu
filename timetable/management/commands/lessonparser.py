@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.core.management.base import NoArgsCommand
 from django.db.utils import IntegrityError
 import requests
+from django.db.models.query import QuerySet
+import operator
 from timetable.models import *
 from _esup_timetable_data import *
 import _parser as parser
@@ -13,11 +15,13 @@ class Command(NoArgsCommand):
     help = "Parse lessons and subjects from the ESUP degrees"
 
     def handle_noargs(self, **options):
+        # Empty QuerySet that will hold all modified DegreeSubjects
+        modified_degreesubjects = QuerySet(model=DegreeSubject)
         for degree, years in COMPULSORY_SUBJECTS_TIMETABLES.iteritems():
             for year, terms in years.iteritems():
                 for term, groups in terms.iteritems():
                     for group, url, file_path in groups:
-                        self.update(
+                        modified_degreesubjects = modified_degreesubjects | self.update(
                             degree,
                             year,
                             term,
@@ -28,7 +32,7 @@ class Command(NoArgsCommand):
         for degree in COMPULSORY_SUBJECTS_TIMETABLES:
             for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
                 for group, url, file_path in groups:
-                    self.update(
+                    modified_degreesubjects = modified_degreesubjects | self.update(
                         degree,
                         "optatives",
                         term,
@@ -36,6 +40,7 @@ class Command(NoArgsCommand):
                         url,
                         file_path
                     )
+        self.update_calendars(modified_degreesubjects)
 
     def update(self, degree, year, term, group, url, file_path):
         print ""
@@ -55,7 +60,7 @@ class Command(NoArgsCommand):
         # Check for differences. If equal, no need to process it.
         if hash(old_html) == hash(new_html):
             print "\tNo changes since last update..."
-            return
+            return QuerySet(model=DegreeSubject)
         print "\tUpdating..."
         # Parse old html into a set of parser.Lessons
         old_lessons = set(parser.parse(old_html))
@@ -77,9 +82,21 @@ class Command(NoArgsCommand):
             # If old html could not be written. Alert about it but go on
             print "Could not write " + file_path
             print "HTML not updated"
-        # Update ICS calendars
-        #modified_lessons = deleted_lessons | inserted_lessons  # set union
-        #self.update_calendars(modified_lessons, degree, year, term, group)
+        #
+        # Create a list of modified DegreeSubjects
+        #
+        # First, collect changed lessons
+        modified_lessons = deleted_lessons | inserted_lessons  # set union
+        print modified_lessons
+        # select SubjectAlias that contain a subject that has changed
+        q_list = (Q(name=lesson.subject) for lesson in modified_lessons)
+        modified_subjectaliases = SubjectAlias.objects.filter(reduce(operator.or_, q_list))
+        print modified_subjectaliases
+        # select all Subjects referred by its SubjectAlias
+        q_list = (Q(subject=alias.subject) for alias in modified_subjectaliases)
+        modified_degreesubjects = DegreeSubject.objects.filter(reduce(operator.or_, q_list))
+        print modified_degreesubjects
+        return modified_degreesubjects
 
     def delete(self, deleted_lessons, degree, year, term, group):
         academic_year = AcademicYear.objects.get(year='2012-13')
@@ -149,24 +166,11 @@ class Command(NoArgsCommand):
                 # This will trigger when trying to add a duplicate entry
                 pass
 
-    def update_calendars(self, subjects):
-        faculty = Faculty.objects.get(name='ESUP')
-        degree_obj = Degree.objects.get(name=degree, faculty=faculty)
-        academic_year = AcademicYear.objects.get(year='2012-13')
-        modified_degreesubjects = set()
-        for lesson in modified_lessons:
-            subject = SubjectAlias.objects.get(name=lesson.subject).subject
-            degreesubject = DegreeSubject(
-                subject=subject,
-                degree=degree_obj,
-                academic_year=academic_year,
-                year=year,
-                term=term,
-                group=group
-            )
-            modified_subjects.add(degreesubject)
-        modified_calendars = Calendar.objects.filter(
-            degreesubjects__in=modified_degreesubjects
-        ).distinct()
-        map(timetable.calendar.regenerate, modified_calendars)  # TODO: Retrieve ical and save it to
-        # calendar object. I could probably pass the calendar as a parameter, and update them?
+    def update_calendars(self, degree_subjects):
+        calendars = Calendar.objects.filter(degree_subjects=degree_subjects)
+        for calendar in calendars:
+            lessons = reduce(operator.or_, calendar.degree_subjects.lessons)
+            calendar_string = timetable.calendar.generate(lessons)
+            calendar.file.delete()
+            calendar.file.save(calendar.name + '.ics',
+                               ContentFile(calendar_string))

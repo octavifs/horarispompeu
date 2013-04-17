@@ -315,3 +315,35 @@ class CalendarUpdateTests(TestCase):
             date_end=datetime.datetime(2012, 9, 25, 18, 30, 00),
         )
         self.assertNotEqual(lesson, None)
+
+    def test_modified_degree_subjects_returned_when_change(self):
+        """Test that when a source calendar is changed, the new entries are inserted"""
+        url = "https://dl.dropboxusercontent.com/u/659835/test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        # Load the database
+        initdb.Command().handle_noargs()
+        subjectparser.Command().handle_noargs()
+        # Parse old html lessons & put them into DB
+        f = open(file_path)
+        old_html = f.read()
+        f.close()
+        lessons = parser.parse(old_html)
+        command = lessonparser.Command()
+        command.insert(
+            inserted_lessons=lessons,
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+        )
+        # Update lessons with the "new" url
+        modified_degreesubjects = command.update(
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+            url=url,
+            file_path=file_path
+        )
+        # 2 degree subjects expected, since we have an insert and a delete from different lessons.
+        self.assertEqual(len(modified_degreesubjects), 2)

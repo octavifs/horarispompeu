@@ -4,7 +4,7 @@ from django.core.management.base import NoArgsCommand
 from django.db import IntegrityError
 import requests
 from timetable.models import Subject, SubjectAlias
-from _esup_timetable_data import *
+from timetable.sources.esup import *
 import _parser as parser
 
 

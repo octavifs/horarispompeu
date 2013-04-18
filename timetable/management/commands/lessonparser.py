@@ -7,7 +7,7 @@ import operator
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from timetable.models import *
-from _esup_timetable_data import *
+from timetable.sources.esup import *
 import _parser as parser
 import timetable.calendar
 

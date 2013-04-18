@@ -88,7 +88,7 @@ def calendar(request):
     string_selected_subjects = "\n".join(raw_selected_subjects)
     # The calendar will have, for its filename, the SHA256 hash of the sorted
     # pairs of (subject_id, group) returned by the selection form
-    subjects_hash = hashlib.sha256(string_selected_subjects).hexdigest()
+    subjects_hash = hashlib.sha1(string_selected_subjects).hexdigest()
     calendar = None
     try:
         calendar = Calendar.objects.get(pk=subjects_hash)

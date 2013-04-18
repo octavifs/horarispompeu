@@ -1,10 +1,11 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 from django.core.management.base import NoArgsCommand
 from django.db.utils import IntegrityError
 import requests
 from django.db.models.query import QuerySet
 import operator
+from django.core.files.base import ContentFile
+from django.db.models import Q
 from timetable.models import *
 from _esup_timetable_data import *
 import _parser as parser
@@ -42,12 +43,13 @@ class Command(NoArgsCommand):
                     )
         self.update_calendars(modified_degreesubjects)
 
-    def update(self, degree, year, term, group, url, file_path):
+    def update(self, degree, year, term, group, url, file_path, overwrite=True):
         print ""
         print url
         # Get HTML from the ESUP website
-        new_html = requests.get(url).text
-        new_html = new_html.encode('UTF-8')
+        r = requests.get(url)
+        r.encoding = 'ISO-8859-1'  # Force latin-1 encoding
+        new_html = r.text
         # Get HTML from previous run
         try:
             f = open(file_path)
@@ -75,9 +77,10 @@ class Command(NoArgsCommand):
         self.insert(inserted_lessons, degree, year, term, group)
         # Update old HTML
         try:
-            f = open(file_path, 'w')
-            f.write(new_html)
-            f.close()
+            if overwrite:
+                f = open(file_path, 'w')
+                f.write(new_html)
+                f.close()
         except IOError:
             # If old html could not be written. Alert about it but go on
             print "Could not write " + file_path
@@ -87,15 +90,12 @@ class Command(NoArgsCommand):
         #
         # First, collect changed lessons
         modified_lessons = deleted_lessons | inserted_lessons  # set union
-        print modified_lessons
         # select SubjectAlias that contain a subject that has changed
         q_list = (Q(name=lesson.subject) for lesson in modified_lessons)
         modified_subjectaliases = SubjectAlias.objects.filter(reduce(operator.or_, q_list))
-        print modified_subjectaliases
         # select all Subjects referred by its SubjectAlias
         q_list = (Q(subject=alias.subject) for alias in modified_subjectaliases)
         modified_degreesubjects = DegreeSubject.objects.filter(reduce(operator.or_, q_list))
-        print modified_degreesubjects
         return modified_degreesubjects
 
     def delete(self, deleted_lessons, degree, year, term, group):
@@ -169,8 +169,16 @@ class Command(NoArgsCommand):
     def update_calendars(self, degree_subjects):
         calendars = Calendar.objects.filter(degree_subjects=degree_subjects)
         for calendar in calendars:
-            lessons = reduce(operator.or_, calendar.degree_subjects.lessons)
+            lessons = QuerySet(model=Lesson)
+            for degreesubject in calendar.degree_subjects.all():
+                lessons = lessons | degreesubject.lessons()
+            lessons = lessons.distinct()
+            #lessons = reduce(operator.or_, calendar.degree_subjects.lessons)
             calendar_string = timetable.calendar.generate(lessons)
-            calendar.file.delete()
+            try:
+                calendar.file.delete()
+            except OSError:
+                # File already deleted. No need to do anything.
+                pass
             calendar.file.save(calendar.name + '.ics',
                                ContentFile(calendar_string))

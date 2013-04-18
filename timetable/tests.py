@@ -16,7 +16,6 @@ import timetable.updater
 import timetable.management.commands._parser as parser
 import timetable.management.commands.lessonparser as lessonparser
 import timetable.management.commands.initdb as initdb
-import timetable.management.commands.aliasparser as aliasparser
 import timetable.management.commands.subjectparser as subjectparser
 
 
@@ -239,7 +238,7 @@ class CalendarUpdateTests(TestCase):
 
     def test_lesson_is_deleted_when_change(self):
         """Test that when a source calendar is changed, the old entries are deleted"""
-        url = "https://dl.dropboxusercontent.com/u/659835/test_horaris_1213_GEI_C4_T1_G1.html"
+        url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
         file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
@@ -257,6 +256,17 @@ class CalendarUpdateTests(TestCase):
             term="1r Trimestre",
             group="GRUP 1",
         )
+        # Check whether the lesson has been inserted or not (it will throw an exception if not)
+        alias = SubjectAlias.objects.get(name="Càlcul i Mètodes Numèrics")
+        Lesson.objects.get(
+            subject=alias.subject,
+            group="GRUP 1",
+            subgroup="",
+            kind="TEORIA",
+            room="52.119",
+            date_start=datetime.datetime(2012, 9, 25, 16, 30, 00),
+            date_end=datetime.datetime(2012, 9, 25, 18, 30, 00),
+        )
         # Update lessons with the "new" url
         command.update(
             degree="Grau en Enginyeria en Informàtica",
@@ -264,9 +274,10 @@ class CalendarUpdateTests(TestCase):
             term="1r Trimestre",
             group="GRUP 1",
             url=url,
-            file_path=file_path
+            file_path=file_path,
+            overwrite=False
         )
-        alias = SubjectAlias.objects.get(name="Càlcul i Mètodes Numèrics")
+        # Check that the lesson has been deleted
         self.assertRaises(
             Lesson.DoesNotExist,
             Lesson.objects.get,
@@ -281,7 +292,7 @@ class CalendarUpdateTests(TestCase):
 
     def test_lesson_is_inserted_when_change(self):
         """Test that when a source calendar is changed, the new entries are inserted"""
-        url = "https://dl.dropboxusercontent.com/u/659835/test_horaris_1213_GEI_C4_T1_G1.html"
+        url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
         file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
@@ -306,7 +317,8 @@ class CalendarUpdateTests(TestCase):
             term="1r Trimestre",
             group="GRUP 1",
             url=url,
-            file_path=file_path
+            file_path=file_path,
+            overwrite=False
         )
         alias = SubjectAlias.objects.get(name="Economia del Coneixement")
         lesson = Lesson.objects.get(
@@ -321,8 +333,7 @@ class CalendarUpdateTests(TestCase):
         self.assertNotEqual(lesson, None)
 
     def test_modified_degree_subjects_returned_when_change(self):
-        """Test that when a source calendar is changed, the new entries are inserted"""
-        url = "https://dl.dropboxusercontent.com/u/659835/test_horaris_1213_GEI_C4_T1_G1.html"
+        url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
         file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
@@ -347,7 +358,49 @@ class CalendarUpdateTests(TestCase):
             term="1r Trimestre",
             group="GRUP 1",
             url=url,
-            file_path=file_path
+            file_path=file_path,
+            overwrite=False
         )
-        # 2 degree subjects expected, since we have an insert and a delete from different lessons.
-        self.assertEqual(len(modified_degreesubjects), 2)
+        self.assertEquals(len(modified_degreesubjects), 2)
+
+    def test_updated_calendars_when_change(self):
+        url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        # Load the database
+        initdb.Command().handle_noargs()
+        subjectparser.Command().handle_noargs()
+        # Parse old html lessons & put them into DB
+        f = open(file_path)
+        old_html = f.read()
+        f.close()
+        lessons = parser.parse(old_html)
+        command = lessonparser.Command()
+        command.insert(
+            inserted_lessons=lessons,
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+        )
+        lessons_db = Lesson.objects.all()
+        degreesubjects = DegreeSubject.objects.all()
+        old_calendar = Calendar(name="test_calendar")
+        old_calendar.save()
+        old_calendar.degree_subjects.add(*degreesubjects)
+        old_calendar.file.save(old_calendar.name + '.ics',
+                               ContentFile(timetable.calendar.generate(lessons_db)))
+        old_calendar_ics = timetable.calendar.generate(lessons_db)
+        # Update lessons with the "new" url
+        modified_degreesubjects = command.update(
+            degree="Grau en Enginyeria en Informàtica",
+            year="4t",
+            term="1r Trimestre",
+            group="GRUP 1",
+            url=url,
+            file_path=file_path,
+            overwrite=False
+        )
+        command.update_calendars(modified_degreesubjects)
+        new_calendar = Calendar.objects.all()[0]
+        new_calendar_ics = new_calendar.file.read()
+        self.assertNotEqual(old_calendar_ics, new_calendar_ics)

@@ -79,7 +79,7 @@ class Command(NoArgsCommand):
         try:
             if overwrite:
                 f = open(file_path, 'w')
-                f.write(new_html)
+                f.write(new_html.encode('ISO-8859-1'))
                 f.close()
         except IOError:
             # If old html could not be written. Alert about it but go on

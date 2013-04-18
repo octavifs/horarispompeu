@@ -1,9 +1,9 @@
 # encoding: utf-8
 """
 This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
+when you run "manage.py test timetable".
 
-Replace this with more appropriate tests for your application.
+Run them from the folder where manage.py is stored. (or the last 4 tests will, probably, fail)
 """
 #from __future__ import unicode_literals
 from django.test import TestCase
@@ -239,7 +239,7 @@ class CalendarUpdateTests(TestCase):
     def test_lesson_is_deleted_when_change(self):
         """Test that when a source calendar is changed, the old entries are deleted"""
         url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
-        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "timetable/tests/test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
         subjectparser.Command().handle_noargs()
@@ -293,7 +293,7 @@ class CalendarUpdateTests(TestCase):
     def test_lesson_is_inserted_when_change(self):
         """Test that when a source calendar is changed, the new entries are inserted"""
         url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
-        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "timetable/tests/test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
         subjectparser.Command().handle_noargs()
@@ -334,7 +334,7 @@ class CalendarUpdateTests(TestCase):
 
     def test_modified_degree_subjects_returned_when_change(self):
         url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
-        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "timetable/tests/test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
         subjectparser.Command().handle_noargs()
@@ -365,7 +365,7 @@ class CalendarUpdateTests(TestCase):
 
     def test_updated_calendars_when_change(self):
         url = "http://theharpy.net/test_horaris_1213_GEI_C4_T1_G1.html"
-        file_path = "test_horaris_1213_GEI_C4_T1_G1.html"
+        file_path = "timetable/tests/test_horaris_1213_GEI_C4_T1_G1.html"
         # Load the database
         initdb.Command().handle_noargs()
         subjectparser.Command().handle_noargs()

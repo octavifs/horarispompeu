@@ -172,15 +172,15 @@ class CalendarUpdateTests(TestCase):
     """
     def test_equality_same_timetable_html(self):
         """Test if 2 calendars are equal"""
-        with open('resources/calendar_html/horari1_old.html') as f:
+        with open('timetable/tests/calendar_html/horari1_old.html') as f:
             timetable_html = f.read()
         self.assertEqual(hash(timetable_html), hash(timetable_html))
 
     def test_inequality_different_timetable_html(self):
         """Test if 2 calendars are different"""
-        with open('resources/calendar_html/horari1_old.html') as f:
+        with open('timetable/tests/calendar_html/horari1_old.html') as f:
             timetable_html_old = f.read()
-        with open('resources/calendar_html/horari1_new.html') as f:
+        with open('timetable/tests/calendar_html/horari1_new.html') as f:
             timetable_html_new = f.read()
         self.assertNotEqual(hash(timetable_html_old), hash(timetable_html_new))
 

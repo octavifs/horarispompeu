@@ -1,5 +1,11 @@
 # encoding: utf-8
-from __future__ import unicode_literals
+"""
+ESUP TIMETABLE SOURCES
+Holds the URL for every timetable in the ESUP degrees and the file paths where the last downloaded
+timetable is stored.
+
+Change the PREFIX variable to the FULL path where you want your old timetables sources to be stored.
+"""
 
 PREFIX = './'
 

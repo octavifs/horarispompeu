@@ -154,6 +154,10 @@ class DatabaseTests(TestCase):
         lesson_archives = LessonArchive.objects.all()
         self.assertEqual(len(lesson_archives), 0)
 
+    def test_degreesubjects_lessons(self):
+        self.assertEquals(self.degreesubject.lessons()[0], self.lesson)
+        self.assertEquals(len(self.degreesubject.lessons()), 1)
+
 
 class CalendarCreationTests(TestCase):
         pass

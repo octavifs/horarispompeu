@@ -17,6 +17,7 @@
 from django.core.management.base import NoArgsCommand
 from django.db.utils import IntegrityError
 import requests
+import codecs
 from django.db.models.query import QuerySet
 import operator
 from django.core.files.base import ContentFile
@@ -67,7 +68,7 @@ class Command(NoArgsCommand):
         new_html = r.text
         # Get HTML from previous run
         try:
-            f = open(file_path)
+            f = codecs.open(file_path, encoding='ISO-8859-1')
             old_html = f.read()
             f.close()
         except IOError:

@@ -19,6 +19,7 @@
 //         takes longer than the timeout)
 //      1: Arguments missing
 //      2: Incorrect email or password (could not log in)
+//      3: Unknown error. May be due to calendar duplication
 //
 
 var casper = require('casper').create({
@@ -56,7 +57,6 @@ args.forEach(function(arg) {
     var calendar_match = arg.match(/(--calendar=)(.+)/);
     if (calendar_match) {
         calendar = calendar_match[2];
-        console.log(calendar);
         return true;
     }
 });
@@ -73,16 +73,13 @@ if (!(email && password && calendar)) {
 // Configure the browser window (render size)
 //casper.options.viewportSize = {width: 800, height: 600};
 
-// Enter google calendar login page
+// Enter google calendar login page, fill and send form
 casper.start('https://calendar.google.com', function() {
     this.fill('#gaia_loginform', {
         'Email': email,
         'Passwd': password,
         'PersistentCookie': 'no'
     }, true);
-
-    // Send login form and redirect to calendar app
-    this.evaluate();
 });
 
 // Check if password is correct. Otherwise, exit
@@ -90,40 +87,51 @@ casper.then(function() {
     var appurl = this.evaluate(function() {
         return document.location.href;
     });
-    console.log(appurl);
     if(!appurl.match(/www.google.com\/calendar\/render/i)) {
-        this.die("Wrong email or password", 2);
+        console.log(email + " : " + password);
+        this.capture("hola.png");
+        this.die("Error: Wrong email or password.", 2);
     }
 });
 
 // Subscribe to calendar
-casper.thenEvaluate(function(calendar) {
-    // Open dropdown
-    __utils__.mouseEvent("mouseover","#clst_fav_menu");
-    __utils__.mouseEvent("mousedown","#clst_fav_menu");
-    __utils__.mouseEvent("mouseup","#clst_fav_menu");
-    __utils__.mouseEvent("click","#clst_fav_menu");
-    // After some time (dropdown does not automatically appear!), continue
-    setTimeout(function() {
-        // Select correct option (3rd one) [Add by URL]
-        document.querySelector("div.goog-menuitem:nth-of-type(3)").className += " itemiwant";
-        __utils__.mouseEvent("mousedown", ".itemiwant");
-        __utils__.mouseEvent("mouseup", ".itemiwant");
-        // Set ICS calendar address in the dialog box
-        document.querySelector("input.gc-dialoginput").setAttribute("value", calendar);
-        // Press OK an be awesome.
-        __utils__.mouseEvent("click", "button.gc-dialogbold");
-    }, 900);
-}, calendar);
-
-// Stall the execution for some time, so the setTimeout and the ICS addition can
-// take place. The values are approximate and if, for whatever reason, the
-// delays increase, the calendar will not be correctly added.
-// It would be nice if the system could be less error prone.
 casper.then(function() {
-    this.wait(1500, function() {
-        console.log("Done!");
+    var that = this;
+    var timeout = 4000; // This is the timeout if any of the routine fails
+    
+    // Open dropdown
+    this.evaluate(function() {
+        __utils__.mouseEvent("mouseover","#clst_fav_menu");
+        __utils__.mouseEvent("mousedown","#clst_fav_menu");
+        __utils__.mouseEvent("mouseup","#clst_fav_menu");
+        __utils__.mouseEvent("click","#clst_fav_menu");
     });
+
+    // Wait for dropdown to open. When it finally does, add the calendar
+    this.waitForSelector("div.goog-menuitem:nth-of-type(3)", function() {
+        that.evaluate(function(calendar) {
+            // Click dropdown button to open dialog box
+            document.querySelector("div.goog-menuitem:nth-of-type(3)").className += " itemiwant";
+            __utils__.mouseEvent("mousedown", ".itemiwant");
+            __utils__.mouseEvent("mouseup", ".itemiwant");
+            // Set ICS calendar address in the dialog box
+            document.querySelector("input.gc-dialoginput").setAttribute("value", calendar);
+            // Press OK an be awesome.
+            __utils__.mouseEvent("click", "button.gc-dialogbold");
+        }, calendar);
+    }, unknownError, timeout);
+
+    // Wait until calendar is added to the "Other Calendars" bar
+    this.waitForSelectorTextChange("#calendars_fav", null, unknownError, timeout);
+
+    function unknownError() {
+        that.die("Error: Unknown error while adding calendar. Calendar already added?", 3);
+    }
+});
+
+// Cleanup
+casper.then(function() {
+    console.log("Done!");
 });
 
 // Run the whole casper thing

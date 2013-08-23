@@ -1,0 +1,828 @@
+[
+{
+    "faculty": "ESUP",
+    "academic_year": "2012-13",
+    "degree": "Grau en Enginyeria de Sistemes Audiovisuals",
+    "timetables": [
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C1_T1_G1.html",
+            "filename": "horaris_1213_GES_C1_T1_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C1_T1_G2.html",
+            "filename": "horaris_1213_GES_C1_T1_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C1_T2_G1.html",
+            "filename": "horaris_1213_GES_C1_T2_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C1_T2_G2.html",
+            "filename": "horaris_1213_GES_C1_T2_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C1_T3_G1.html",
+            "filename": "horaris_1213_GES_C1_T3_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C1_T3_G2.html",
+            "filename": "horaris_1213_GES_C1_T3_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C2_T1_G1.html",
+            "filename": "horaris_1213_GES_C2_T1_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C2_T1_G2.html",
+            "filename": "horaris_1213_GES_C2_T1_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C2_T2_G1.html",
+            "filename": "horaris_1213_GES_C2_T2_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C2_T2_G2.html",
+            "filename": "horaris_1213_GES_C2_T2_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C2_T3_G1.html",
+            "filename": "horaris_1213_GES_C2_T3_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C2_T3_G2.html",
+            "filename": "horaris_1213_GES_C2_T3_G2.html"
+        },
+        {
+            "year": "3r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C3_T1_G1.html",
+            "filename": "horaris_1213_GES_C3_T1_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C3_T2_G1.html",
+            "filename": "horaris_1213_GES_C3_T2_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C3_T3_G1.html",
+            "filename": "horaris_1213_GES_C3_T3_G1.html"
+        },
+        {
+            "year": "4t",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GES_C4_T1_G1.html",
+            "filename": "horaris_1213_GES_C4_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T1_G1.html",
+            "filename": "horaris_1213_OPT_C1_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T2_G1.html",
+            "filename": "horaris_1213_OPT_C1_T2_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T3_G1.html",
+            "filename": "horaris_1213_OPT_C1_T3_G1.html"
+        },
+    ]
+},
+{
+    "faculty": "ESUP",
+    "academic_year": "2012-13",
+    "degree": "Grau en Enginyeria de Telemàtica",
+    "timetables": [
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C1_T1_G1.html",
+            "filename": "horaris_1213_GET_C1_T1_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C1_T1_G2.html",
+            "filename": "horaris_1213_GET_C1_T1_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C1_T2_G1.html",
+            "filename": "horaris_1213_GET_C1_T2_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C1_T2_G2.html",
+            "filename": "horaris_1213_GET_C1_T2_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C1_T3_G1.html",
+            "filename": "horaris_1213_GET_C1_T3_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C1_T3_G2.html",
+            "filename": "horaris_1213_GET_C1_T3_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C2_T1_G1.html",
+            "filename": "horaris_1213_GET_C2_T1_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C2_T1_G2.html",
+            "filename": "horaris_1213_GET_C2_T1_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C2_T2_G1.html",
+            "filename": "horaris_1213_GET_C2_T2_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C2_T2_G2.html",
+            "filename": "horaris_1213_GET_C2_T2_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C2_T3_G1.html",
+            "filename": "horaris_1213_GET_C2_T3_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C2_T3_G2.html",
+            "filename": "horaris_1213_GET_C2_T3_G2.html"
+        },
+        {
+            "year": "3r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C3_T1_G1.html",
+            "filename": "horaris_1213_GET_C3_T1_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C3_T2_G1.html",
+            "filename": "horaris_1213_GET_C3_T2_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C3_T3_G1.html",
+            "filename": "horaris_1213_GET_C3_T3_G1.html"
+        },
+        {
+            "year": "4t",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GET_C4_T1_G1.html",
+            "filename": "horaris_1213_GET_C4_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T1_G1.html",
+            "filename": "horaris_1213_OPT_C1_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T2_G1.html",
+            "filename": "horaris_1213_OPT_C1_T2_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T3_G1.html",
+            "filename": "horaris_1213_OPT_C1_T3_G1.html"
+        },
+    ]
+},
+{
+    "faculty": "ESUP",
+    "academic_year": "2012-13",
+    "degree": "Grau en Enginyeria en Informàtica",
+    "timetables": [
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C1_T1_G1.html",
+            "filename": "horaris_1213_GEI_C1_T1_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C1_T1_G2.html",
+            "filename": "horaris_1213_GEI_C1_T1_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C1_T2_G1.html",
+            "filename": "horaris_1213_GEI_C1_T2_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C1_T2_G2.html",
+            "filename": "horaris_1213_GEI_C1_T2_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C1_T3_G1.html",
+            "filename": "horaris_1213_GEI_C1_T3_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C1_T3_G2.html",
+            "filename": "horaris_1213_GEI_C1_T3_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C2_T1_G1.html",
+            "filename": "horaris_1213_GEI_C2_T1_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C2_T1_G2.html",
+            "filename": "horaris_1213_GEI_C2_T1_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C2_T2_G1.html",
+            "filename": "horaris_1213_GEI_C2_T2_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C2_T2_G2.html",
+            "filename": "horaris_1213_GEI_C2_T2_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C2_T3_G1.html",
+            "filename": "horaris_1213_GEI_C2_T3_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C2_T3_G2.html",
+            "filename": "horaris_1213_GEI_C2_T3_G2.html"
+        },
+        {
+            "year": "3r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C3_T1_G1.html",
+            "filename": "horaris_1213_GEI_C3_T1_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C3_T2_G1.html",
+            "filename": "horaris_1213_GEI_C3_T2_G1.html"
+        },
+        {
+            "year": "4t",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_GEI_C4_T1_G1.html",
+            "filename": "horaris_1213_GEI_C4_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T1_G1.html",
+            "filename": "horaris_1213_OPT_C1_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T2_G1.html",
+            "filename": "horaris_1213_OPT_C1_T2_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1213/graus12_13/horaris_1213_OPT_C1_T3_G1.html",
+            "filename": "horaris_1213_OPT_C1_T3_G1.html"
+        },
+    ]
+},
+{
+    "faculty": "ESUP",
+    "academic_year": "2013-14",
+    "degree": "Grau en Enginyeria de Sistemes Audiovisuals",
+    "timetables": [
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C1_T1_G1.html",
+            "filename": "horaris_1314_GES_C1_T1_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C1_T1_G2.html",
+            "filename": "horaris_1314_GES_C1_T1_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C1_T2_G1.html",
+            "filename": "horaris_1314_GES_C1_T2_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C1_T2_G2.html",
+            "filename": "horaris_1314_GES_C1_T2_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C1_T3_G1.html",
+            "filename": "horaris_1314_GES_C1_T3_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C1_T3_G2.html",
+            "filename": "horaris_1314_GES_C1_T3_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C2_T1_G1.html",
+            "filename": "horaris_1314_GES_C2_T1_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C2_T1_G2.html",
+            "filename": "horaris_1314_GES_C2_T1_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C2_T2_G1.html",
+            "filename": "horaris_1314_GES_C2_T2_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C2_T2_G2.html",
+            "filename": "horaris_1314_GES_C2_T2_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C2_T3_G1.html",
+            "filename": "horaris_1314_GES_C2_T3_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C2_T3_G2.html",
+            "filename": "horaris_1314_GES_C2_T3_G2.html"
+        },
+        {
+            "year": "3r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C3_T1_G1.html",
+            "filename": "horaris_1314_GES_C3_T1_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C3_T2_G1.html",
+            "filename": "horaris_1314_GES_C3_T2_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C3_T3_G1.html",
+            "filename": "horaris_1314_GES_C3_T3_G1.html"
+        },
+        {
+            "year": "4t",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GES_C4_T1_G1.html",
+            "filename": "horaris_1314_GES_C4_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T1_G1.html",
+            "filename": "horaris_1314_OPT_C1_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T2_G1.html",
+            "filename": "horaris_1314_OPT_C1_T2_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T3_G1.html",
+            "filename": "horaris_1314_OPT_C1_T3_G1.html"
+        },
+    ]
+},
+{
+    "faculty": "ESUP",
+    "academic_year": "2013-14",
+    "degree": "Grau en Enginyeria de Telemàtica",
+    "timetables": [
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C1_T1_G1.html",
+            "filename": "horaris_1314_GET_C1_T1_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C1_T1_G2.html",
+            "filename": "horaris_1314_GET_C1_T1_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C1_T2_G1.html",
+            "filename": "horaris_1314_GET_C1_T2_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C1_T2_G2.html",
+            "filename": "horaris_1314_GET_C1_T2_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C1_T3_G1.html",
+            "filename": "horaris_1314_GET_C1_T3_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C1_T3_G2.html",
+            "filename": "horaris_1314_GET_C1_T3_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C2_T1_G1.html",
+            "filename": "horaris_1314_GET_C2_T1_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C2_T1_G2.html",
+            "filename": "horaris_1314_GET_C2_T1_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C2_T2_G1.html",
+            "filename": "horaris_1314_GET_C2_T2_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C2_T2_G2.html",
+            "filename": "horaris_1314_GET_C2_T2_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C2_T3_G1.html",
+            "filename": "horaris_1314_GET_C2_T3_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C2_T3_G2.html",
+            "filename": "horaris_1314_GET_C2_T3_G2.html"
+        },
+        {
+            "year": "3r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C3_T1_G1.html",
+            "filename": "horaris_1314_GET_C3_T1_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C3_T2_G1.html",
+            "filename": "horaris_1314_GET_C3_T2_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C3_T3_G1.html",
+            "filename": "horaris_1314_GET_C3_T3_G1.html"
+        },
+        {
+            "year": "4t",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GET_C4_T1_G1.html",
+            "filename": "horaris_1314_GET_C4_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T1_G1.html",
+            "filename": "horaris_1314_OPT_C1_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T2_G1.html",
+            "filename": "horaris_1314_OPT_C1_T2_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T3_G1.html",
+            "filename": "horaris_1314_OPT_C1_T3_G1.html"
+        },
+    ]
+},
+{
+    "faculty": "ESUP",
+    "academic_year": "2013-14",
+    "degree": "Grau en Enginyeria en Informàtica",
+    "timetables": [
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C1_T1_G1.html",
+            "filename": "horaris_1314_GEI_C1_T1_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C1_T1_G2.html",
+            "filename": "horaris_1314_GEI_C1_T1_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C1_T2_G1.html",
+            "filename": "horaris_1314_GEI_C1_T2_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C1_T2_G2.html",
+            "filename": "horaris_1314_GEI_C1_T2_G2.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C1_T3_G1.html",
+            "filename": "horaris_1314_GEI_C1_T3_G1.html"
+        },
+        {
+            "year": "1r",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C1_T3_G2.html",
+            "filename": "horaris_1314_GEI_C1_T3_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C2_T1_G1.html",
+            "filename": "horaris_1314_GEI_C2_T1_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "1r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C2_T1_G2.html",
+            "filename": "horaris_1314_GEI_C2_T1_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C2_T2_G1.html",
+            "filename": "horaris_1314_GEI_C2_T2_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "2n Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C2_T2_G2.html",
+            "filename": "horaris_1314_GEI_C2_T2_G2.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C2_T3_G1.html",
+            "filename": "horaris_1314_GEI_C2_T3_G1.html"
+        },
+        {
+            "year": "2n",
+            "term": "3r Trimestre",
+            "group": "GRUP 2",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C2_T3_G2.html",
+            "filename": "horaris_1314_GEI_C2_T3_G2.html"
+        },
+        {
+            "year": "3r",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C3_T1_G1.html",
+            "filename": "horaris_1314_GEI_C3_T1_G1.html"
+        },
+        {
+            "year": "3r",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C3_T2_G1.html",
+            "filename": "horaris_1314_GEI_C3_T2_G1.html"
+        },
+        {
+            "year": "4t",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_GEI_C4_T1_G1.html",
+            "filename": "horaris_1314_GEI_C4_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "1r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T1_G1.html",
+            "filename": "horaris_1314_OPT_C1_T1_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "2n Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T2_G1.html",
+            "filename": "horaris_1314_OPT_C1_T2_G1.html"
+        },
+        {
+            "year": "optatives",
+            "term": "3r Trimestre",
+            "group": "GRUP 1",
+            "url": "http://www.upf.edu/esup/docencia/horaris1314/horaris_1314_OPT_C1_T3_G1.html",
+            "filename": "horaris_1314_OPT_C1_T3_G1.html"
+        },
+    ]
+}
+]

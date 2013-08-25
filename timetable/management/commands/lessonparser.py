@@ -14,61 +14,71 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
-import requests
-import codecs
 from django.db.models.query import QuerySet
-import operator
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from timetable.models import *
+import requests
+import io
+import os
+import json
+import operator
 from timetable.sources.esup import *
 import _parser as parser
 import timetable.calendar
 
+FILEPATH = os.path.dirname(__file__)
+TIMETABLES_FILEPATH = os.path.join(FILEPATH, "../../sources/timetables.json")
 
-class Command(NoArgsCommand):
+
+class Command(BaseCommand):
     help = "Parse lessons and subjects from the ESUP degrees"
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
+        global TIMETABLES_FILEPATH
         # Empty QuerySet that will hold all modified DegreeSubjects
         modified_degreesubjects = QuerySet(model=DegreeSubject)
-        for degree, years in COMPULSORY_SUBJECTS_TIMETABLES.iteritems():
-            for year, terms in years.iteritems():
-                for term, groups in terms.iteritems():
-                    for group, url, file_path in groups:
-                        modified_degreesubjects = modified_degreesubjects | self.update(
-                            degree,
-                            year,
-                            term,
-                            group,
-                            url,
-                            file_path
-                        )
-        for degree in COMPULSORY_SUBJECTS_TIMETABLES:
-            for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
-                for group, url, file_path in groups:
-                    modified_degreesubjects = modified_degreesubjects | self.update(
-                        degree,
-                        "optatives",
-                        term,
-                        group,
-                        url,
-                        file_path
-                    )
+        if args:
+            TIMETABLES_FILEPATH = args[0]
+        with open(TIMETABLES_FILEPATH, 'r') as f:
+            timetables = json.load(f, encoding="utf-8")
+        for entry in timetables:
+            # Each entry has a faculty, academic year and degree. It also
+            # has a list of timetables.
+            # First, we make sure that the basic info is in the system
+            faculty, _ = Faculty.objects.get_or_create(name=entry["faculty"])
+            if not AcademicYear.objects.filter(year=entry["academic_year"]).exists():
+                AcademicYear(entry["academic_year"]).save()
+            if not Degree.objects.filter(faculty=faculty, name=entry["degree"]).exists():
+                Degree(faculty=faculty, name=entry["degree"]).save()
+            # Now that everything is initialized, start going through timetables
+            for schedule in entry["timetables"]:
+                # This is a set union. Union of modified degreesubjects in the
+                # modified_degreesubjects QuerySet
+                modified_degreesubjects = modified_degreesubjects | self.update(
+                    entry["faculty"],
+                    entry["academic_year"],
+                    entry["degree"],
+                    schedule["year"],
+                    schedule["term"],
+                    schedule["group"],
+                    schedule["url"],
+                    schedule["filename"]
+                )
+        # Only update calendars (.ics files) that have been modified.
         self.update_calendars(modified_degreesubjects)
 
-    def update(self, degree, year, term, group, url, file_path, overwrite=True):
+    def update(self, faculty, academic_year, degree, year, term, group, url, file_path, overwrite=True):
         print ""
         print url
         # Get HTML from the ESUP website
         r = requests.get(url)
-        r.encoding = 'ISO-8859-1'  # Force latin-1 encoding
         new_html = r.text
         # Get HTML from previous run
         try:
-            f = codecs.open(file_path, encoding='ISO-8859-1')
+            f = io.open(file_path, encoding='utf-8')
             old_html = f.read()
             f.close()
         except IOError:
@@ -88,14 +98,14 @@ class Command(NoArgsCommand):
         deleted_lessons = old_lessons - new_lessons  # set difference
         inserted_lessons = new_lessons - old_lessons  # set difference
         # Delete outdated lessons
-        self.delete(deleted_lessons, degree, year, term, group)
+        self.delete(deleted_lessons, faculty, academic_year, degree, year, term, group)
         # Insert updated lessons
-        self.insert(inserted_lessons, degree, year, term, group)
+        self.insert(inserted_lessons, faculty, academic_year, degree, year, term, group)
         # Update old HTML
         try:
             if overwrite:
-                f = open(file_path, 'w')
-                f.write(new_html.encode('ISO-8859-1'))
+                f = io.open(file_path, 'w', encoding="utf-8")
+                f.write(new_html)
                 f.close()
         except IOError:
             # If old html could not be written. Alert about it but go on
@@ -114,8 +124,8 @@ class Command(NoArgsCommand):
         modified_degreesubjects = DegreeSubject.objects.filter(reduce(operator.or_, q_list))
         return modified_degreesubjects
 
-    def delete(self, deleted_lessons, degree, year, term, group):
-        academic_year = AcademicYear.objects.get(year='2012-13')
+    def delete(self, deleted_lessons, faculty, academic_year, degree, year, term, group):
+        academic_year = AcademicYear.objects.get(year=academic_year)
         for entry in deleted_lessons:
             alias = entry.subject
             try:
@@ -137,9 +147,9 @@ class Command(NoArgsCommand):
             except Lesson.DoesNotExist:
                 pass
 
-    def insert(self, inserted_lessons, degree, year, term, group):
-        faculty = Faculty.objects.get(name='ESUP')
-        academic_year = AcademicYear.objects.get(year='2012-13')
+    def insert(self, inserted_lessons, faculty, academic_year, degree, year, term, group):
+        faculty = Faculty.objects.get(name=faculty)
+        academic_year = AcademicYear.objects.get(year=academic_year)
         # create degreesubjects
         for entry in inserted_lessons:
             alias = entry.subject

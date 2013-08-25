@@ -15,29 +15,43 @@
 # limitations under the License.
 
 from __future__ import unicode_literals
-from django.core.management.base import NoArgsCommand
-from django.db import IntegrityError
-import requests
-from timetable.models import Subject, SubjectAlias
-from timetable.sources.esup import *
+from django.core.management.base import BaseCommand
+from timetable.models import SubjectAlias, Faculty, AcademicYear, Degree
 import _parser as parser
+import os
+import json
+import requests
+
+FILEPATH = os.path.dirname(__file__)
+TIMETABLES_FILEPATH = os.path.join(FILEPATH, "../../sources/timetables.json")
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "Parse classes and subjects from the ESUP degrees"
 
-    def handle_noargs(self, **options):
-        for degree, years in COMPULSORY_SUBJECTS_TIMETABLES.iteritems():
-            for year, terms in years.iteritems():
-                for term, groups in terms.iteritems():
-                    for group, url, _ in groups:
-                        print url
-                        html = requests.get(url).text
-                        self.parse(html)
-        for term, groups in OPTIONAL_SUBJECTS_TIMETABLES.iteritems():
-            for group, url, _ in groups:
-                print url
-                html = requests.get(url).text
+    def handle(self, *args, **options):
+        global TIMETABLES_FILEPATH
+        if args:
+            TIMETABLES_FILEPATH = args[0]
+        with open(TIMETABLES_FILEPATH, 'r') as f:
+            timetables = json.load(f, encoding="utf-8")
+        for entry in timetables:
+            # Each entry has a faculty, academic year and degree. It also
+            # has a list of timetables.
+            # First, we make sure that the basic info is in the system
+            try:
+                faculty = Faculty.objects.get(name=entry["faculty"])
+            except Faculty.DoesNotExist:
+                faculty = Faculty(entry["faculty"])
+                faculty.save()
+            if not AcademicYear.objects.filter(year=entry["academic_year"]).exists():
+                AcademicYear(entry["academic_year"]).save()
+            if not Degree.objects.filter(faculty=faculty, name=entry["degree"]).exists():
+                Degree(faculty=faculty, name=entry["degree"]).save()
+            # Now that everything is initialized, start going through timetables
+            for timetable in entry["timetables"]:
+                print timetable["url"]
+                html = requests.get(timetable["url"]).text
                 self.parse(html)
 
     def parse(self, html):
@@ -45,7 +59,7 @@ class Command(NoArgsCommand):
         aliases = set([entry.subject for entry in classes])
         for alias in aliases:
             entries = SubjectAlias.objects.filter(name=alias)
-            if len(entries) != 0:
+            if entries.exists():
                 continue  # Nothing to do here
             subjectalias = SubjectAlias(name=alias, subject=None)
             subjectalias.save()

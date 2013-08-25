@@ -1,9 +1,22 @@
-{% if subject_list %}
-    <ul>
-    {% for subject in subject_list %}
-        <li>{{ subject.name }} {{ subject.faculty.name }}</li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No classes are available.</p>
-{% endif %}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Horaris Pompeu</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="jumbotron">
+    <h1>Horaris Pompeu</h1>
+    <p class="lead">Crea el teu horari personalitzat i sincronitza'l amb els teus dispositius mòbils.</p>
+    <p><a class="btn btn-lg btn-danger" href="/grau">Escull grau <span class="glyphicon glyphicon-chevron-right"></span></a></p>
+  </div>
+
+</div> <!-- /container -->
+{% endblock %}
+

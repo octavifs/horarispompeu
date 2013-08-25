@@ -20,7 +20,7 @@ from django.views.generic.base import RedirectView
 from timetable import views
 
 urlpatterns = patterns('',
-    url(r'^$', RedirectView.as_view(url='grau')),
+    url(r'^$', views.index, name='index'),
     url(r'^grau/$', views.degree, name='degree'),
     url(r'^curs/$', views.year, name='year'),
     url(r'^assignatures/$', views.subject, name='subject'),

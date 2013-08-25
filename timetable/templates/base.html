@@ -1,73 +1,44 @@
 {% load staticfiles %}
 
 <!DOCTYPE html>
-<html lang="ca">
-<head>
-    <link rel="stylesheet" href="{% static "style.css" %}" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
     <title>Horaris Pompeu. Crea el teu propi horari i oblida-te'n</title>
-    {% block header %}
-    {% endblock %}
-</head>
 
-<body>
-    <div id="wrapper">
-        <div id="header">
-            <div id="calendar">
-                <div id="cal_month">Març</div>
-                <div id="cal_day">25</div>
-            </div>
-        </div>
+    <!-- Bootstrap core CSS -->
 
-        <div id="content">
-            {% block content %}
-            <h1>Títol de prova</h1>
-            <h2>Subtítol de prova</h2>
-            <ul>
-                <li>
-                    <input type="checkbox" name="prova" id="prova1" value="prova1" />
-                    <label for="prova1">Label de prova 1</label>
-                </li>
-                <li>
-                    <input type="checkbox" name="prova" id="prova2" value="prova2" />
-                    <label for="prova2">Label de prova2</label>
-                </li>
-                <li>
-                    <input type="checkbox" name="prova" id="prova3" value="prova3" />
-                    <label for="prova3">Label de prova3</label>
-                </li>
-                <li>
-                    <input type="checkbox" name="prova" id="prova4" value="prova4" />
-                    <label for="prova4">Label de prova4</label>
-                </li>
-            </ul>
-            <input type="submit" value="Next" />
-            {% endblock %}
-        </div>
-        <div id="push"></div>
-    </div>
-    <div id="footer">
-        <p>Powered by Django</p>
-        <p>Check the source code on <a href="https://github.com/octavifs/horarispompeu">GitHub</a></p>
-    </div>
-    <script type="text/javascript">
-        var month=new Array();
-        month[0]="Gener";
-        month[1]="Febrer";
-        month[2]="Març";
-        month[3]="Abril";
-        month[4]="Maig";
-        month[5]="Juny";
-        month[6]="Juliol";
-        month[7]="Agost";
-        month[8]="Setembre";
-        month[9]="Octubre";
-        month[10]="Novembre";
-        month[11]="Desembre";
-        var d = new Date();
-        var cal_month = document.getElementById("cal_month");
-        cal_month.innerHTML=month[d.getMonth()];
-        var cal_day = document.getElementById("cal_day");
-        cal_day.innerHTML=d.getDate();
-    </script>
-</body>
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{% static "css/style.css" %}" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="{% static "js/html5shiv.js" %}"></script>
+      <script src="{% static "js/respond.min.js" %}"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+  <div id="wrap">
+  {% block content %}
+  {% endblock %}
+  </div>
+  <div id="footer">
+      <div class="container">
+        <p class="text-muted credit">HorarisPompeu, ©2013. Powered by Bootstrap, Django and NGINX.</p>
+      </div>
+  </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="{% static "js/jquery.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/bootstrap.min.js" %}"></script>
+  </body>
 </html>

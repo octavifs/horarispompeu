@@ -1,7 +1,58 @@
 {% extends "base.html" %}
 
-{% block header %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+{% block navbar %}
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Horaris Pompeu</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">Grau</a></li>
+        <li><a href="#">Curs</a></li>
+        <li><a href="#">Assignatures</a></li>
+      </ul>
+    </div><!--/.navbar-collapse -->
+  </div>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <h1>Quines assignatures curses?</h1>
+
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+    <div class="input-group input-group-lg">
+        <input type="search" class="form-control" id="searchbar" placeholder="Busca assignatura...">
+        <span class="input-group-addon glyphicon glyphicon-search label-danger" style="color: #fff"></span>
+    </div><!-- /input-group -->
+    <form action="{% url 'calendar' %}" method="post" class="form-horizontal" role="form">
+    {% csrf_token %}
+    {% for year, degree_subjects in year_degree_subjects %}
+        <div class="form-group" data-toggle="buttons-checkbox">
+        <h2>{{ year }}</h2>
+        </div>
+        <div class="form-group" data-toggle="buttons">
+        {% for degree_subject in degree_subjects %}
+            <label class="btn btn-default col-xs-12 col-md-6 col-lg-4" title="{{ degree_subject.subject__name }} {{degree_subject.group}}">
+                <input type="checkbox" name="degree_subject" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}">{{ degree_subject.subject__name }} <em>{{degree_subject.group}}</em></input>
+          </label>
+        {% endfor %}
+        </div>
+    {% endfor %}
+    <div class="form-group">
+        <button type="submit" class="btn btn-lg btn-danger">Crea el calendari <span class="glyphicon glyphicon-calendar"></span></button>
+    </div>
+    </form>
+{% endblock %}
+
+{% block scripts %}
 <script type="text/javascript">
 $(document).ready(function(){
     // Accents remover. Helps with fuzzy search
@@ -26,7 +77,7 @@ $(document).ready(function(){
     function filtersubjects(){
         var filter = accentsTidy($("#searchbar").val()).replace(/ /g,'');
         var reg = new RegExp(filter.split('').join('\\w*').replace(/\W/, ""), 'i');
-        $(':checkbox:not(:checked) + label').each(function(){
+        $('label:has(:checkbox:not(:checked))').each(function(){
             var subject = accentsTidy($(this).text()).replace(/ /g,'');
             if (!subject.match(reg)) {
                 $(this).hide()
@@ -55,27 +106,4 @@ $(document).ready(function(){
     });
 });
 </script>
-{% endblock %}
-
-
-{% block content %}
-<h1>Quines assignatures curses?</h1>
-
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-<input id="searchbar" type="search" placeholder="Busca assignatura...">
-<form action="{% url 'calendar' %}" method="post">
-{% csrf_token %}
-{% for year, degree_subjects in year_degree_subjects %}
-    <h2>{{ year }}</h2>
-    <ul>
-    {% for degree_subject in degree_subjects %}
-        <li>
-            <input type="checkbox" name="degree_subject" id="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}" />
-            <label for="year{{ forloop.parentloop.counter }}_degree_subject{{ forloop.counter }}">{{ degree_subject.subject__name }} <em>{{degree_subject.group}}</em></label>
-        </li>
-    {% endfor %}
-    </ul>
-{% endfor %}
-<input type="submit" value="Següent" />
-</form>
 {% endblock %}

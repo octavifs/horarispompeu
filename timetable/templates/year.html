@@ -1,25 +1,49 @@
 {% extends "base.html" %}
 
+{% block navbar %}
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Horaris Pompeu</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">Grau</a></li>
+        <li><a href="#">Curs</a></li>
+      </ul>
+    </div><!--/.navbar-collapse -->
+  </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<h1>Quins cursos curses?</h1>
+  <h1>Quins cursos curses?</h1>
 
-{% if error_message %}
-<p><strong>{{ error_message }}</strong></p>
-{% endif %}
+  {% if error_message %}
+  <p><strong>{{ error_message }}</strong></p>
+  {% endif %}
 
-<form action="{% url 'subject' %}" method="post">
-{% csrf_token %}
-{% for degree, year_list in degree_list.iteritems %}
-    <h2>{{ degree }}</h2>
-    <ul>
-    {% for year in year_list %}
-        <li>
-            <input type="checkbox" name="degree_year" id="degree{{ forloop.parentloop.counter }}_year{{ forloop.counter }}" value="{{ year.degree }}_{{ year.year }}_{{ year.group }}" />
-            <label for="degree{{ forloop.parentloop.counter }}_year{{ forloop.counter }}">{{ year.year }} {{ year.group }}</label>
-        </li>
-    {% endfor %}
-    </ul>
-{% endfor %}
-<input type="submit" value="Següent" />
-</form>
+  <form action="{% url 'subject' %}" method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  {% for degree, year_list in degree_list.iteritems %}
+  <div class="form-group" data-toggle="buttons">
+      <h2>{{ degree }}</h2>    
+  </div>
+  <div class="form-group" data-toggle="buttons">
+      {% for year in year_list %}
+        <label class="btn btn-default col-xs-12 col-md-6 col-lg-4">
+          <input type="checkbox" name="degree_year" value="{{ year.degree }}_{{ year.year }}_{{ year.group }}">{{ year.year }} {{ year.group }}</input>
+        </label>
+      {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="form-group">
+    <button type="submit" class="btn btn-lg btn-danger">Escull assignatures <span class="glyphicon glyphicon-chevron-right"></span></button>
+  </div>
+  </form>
 {% endblock %}

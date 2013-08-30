@@ -84,8 +84,9 @@ body {
   background-color: rgba(240,240,240,0.8);
 }
 .jumbotron .btn-default {
-  font-size: 21px;
+  font-size: 16px;
   padding: 14px 24px;
+  overflow: hidden;
 }
 
 .jumbotron h1, .navbar-brand {

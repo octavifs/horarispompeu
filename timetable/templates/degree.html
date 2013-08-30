@@ -1,20 +1,41 @@
 {% extends "base.html" %}
 
+{% block navbar %}
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Horaris Pompeu</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">Grau</a></li>
+      </ul>
+    </div><!--/.navbar-collapse -->
+  </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<h1>Quins graus curses?</h1>
+  <h1>Quins graus curses?</h1>
+        
+  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
-<form action="{% url 'year' %}" method="post">
-{% csrf_token %}
-<ul>
-{% for degree in degree_list %}
-    <li>
-        <input type="checkbox" name="degree" id="degree{{ forloop.counter }}" value="{{ degree.id }}" />
-        <label for="degree{{ forloop.counter }}">{{ degree.name }}</label>
-    </li>
-{% endfor %}
-</ul>
-<input type="submit" value="Següent" />
-</form>
+  <form action="{% url 'year' %}" method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  <div class="form-group" data-toggle="buttons">
+  {% for degree in degree_list %}
+      <label class="btn btn-default col-xs-12 col-md-6 col-lg-4">
+        <input type="checkbox" name="degree" value="{{ degree.id }}">{{ degree.name }}</input>
+      </label>
+  {% endfor %}
+  </div>
+  <div class="form-group">
+    <button type="submit" class="btn btn-lg btn-danger">Escull curs <span class="glyphicon glyphicon-chevron-right"></span></button>
+  </div>
+  </form>
 {% endblock %}

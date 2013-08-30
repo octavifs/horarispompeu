@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block navbar %}
 <div class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
     <div class="navbar-header">
@@ -8,15 +8,11 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<div class="container">
-
-  <div class="jumbotron">
-    <h1>Horaris Pompeu</h1>
-    <p class="lead">Crea el teu horari personalitzat i sincronitza'l amb els teus dispositius mòbils.</p>
-    <p><a class="btn btn-lg btn-danger" href="/grau">Escull grau <span class="glyphicon glyphicon-chevron-right"></span></a></p>
-  </div>
-
-</div> <!-- /container -->
+{% block content %}
+  <h1>Horaris Pompeu</h1>
+  <p class="lead">Crea el teu horari personalitzat i sincronitza'l amb els teus dispositius mòbils.</p>
+  <p><a class="btn btn-lg btn-danger" href="/grau">Escull grau <span class="glyphicon glyphicon-chevron-right"></span></a></p>
 {% endblock %}
 

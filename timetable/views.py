@@ -94,7 +94,7 @@ def calendar(request):
     raw_selected_subjects = request.POST.getlist('degree_subject')
     raw_selected_subjects.sort()
     string_selected_subjects = "\n".join(raw_selected_subjects)
-    # The calendar will have, for its filename, the SHA256 hash of the sorted
+    # The calendar will have, for its filename, the SHA1 hash of the sorted
     # pairs of (subject_id, group) returned by the selection form
     subjects_hash = hashlib.sha1(string_selected_subjects).hexdigest()
     calendar = None

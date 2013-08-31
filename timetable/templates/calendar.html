@@ -1,14 +1,88 @@
 {% extends "base.html" %}
 
+{% block navbar %}
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Horaris Pompeu</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">Grau</a></li>
+        <li><a href="#">Curs</a></li>
+        <li><a href="#">Assignatures</a></li>
+        <li><a href="#">Calendari</a></li>
+      </ul>
+    </div><!--/.navbar-collapse -->
+  </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<h1>Subscriu-te al teu calendari</h1>
-<input type="text" readonly="" spellcheck="false" id="calendar_url" value="{{ calendar_url }}" onclick=this.select()>
-<h2>Com afegir el calendari</h2>
-<p>1. Copia la URL superior</p>
-<p>2. Entra al teu Google Calendar</p>
-<p>3. Fes click al desplegable "Otros calendarios" > Añadir por URL</p>
-<img src="/static/pas1.png" />
-<p>4. Copia la URL i fes click a "Añadir calendario"</p>
-<img src="/static/pas2.png" />
-<p>5. Ja està!</p>
+<h1>Subscriu-te al calendari</h1>
+<p>Acabem de generar el teu calendari.</p>
+<p>Per sincronitzar-lo amb el teu mòbil, en primer lloc t'hi has de subscriure.</p>
+<p>Segueix els següents passos per completar el procés:</p>
+
+<h2>Subscripció</h2>
+<ul class="nav nav-tabs" id="subscription">
+  <li class="active"><a href="#automatic_subscription" data-toggle="tab">Automàtica</a></li>
+  <li><a href="#manual_subscription" data-toggle="tab">Manual</a></li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane active" id="automatic_subscription">
+    <div class="row">
+    <form class="col-md-6" role="form">
+      <div class="form-group">
+        <label for="exampleInputEmail1">Correu electrònic</label>
+        <input type="email" class="form-control" id="exampleInputEmail1" placeholder="usuari@gmail.com o usuari@estudiant.upf.edu">
+      </div>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Contrassenya</label>
+        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Contrassenya">
+      </div>
+      <button type="submit" class="btn btn-danger">Subscriu <span class="glyphicon glyphicon-pencil"></span></button>
+    </form>
+    </div>
+  </div>
+  <div class="tab-pane" id="manual_subscription">
+    <input type="text" class="form-control-static input-lg col-xs-12" spellcheck="false" id="calendar_url" value="{{ calendar_url }}" onclick=this.select()>
+    <p>1. Copia la URL superior</p>
+    <p>2. Entra al teu Google Calendar</p>
+    <p>3. Fes click al desplegable "Otros calendarios" > Añadir por URL</p>
+    <img src="/static/pas1.png" />
+    <p>4. Copia la URL i fes click a "Añadir calendario"</p>
+    <img src="/static/pas2.png" />
+    <p>5. Ja està!</p>
+  </div>
+</div>
+
+<h2>Sincronització</h2>
+<ul class="nav nav-tabs" id="sync">
+  <li class="active"><a href="#android_sync" data-toggle="tab">Android <img src="/static/android.png"></a></li>
+  <li><a href="#ios_sync" data-toggle="tab">iOS <img src="/static/android.png"></a></li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane active" id="android_sync">
+    <ol>
+      <li>Pas 1</li>
+      <li>Pas 2</li>
+      <li>Pas 3</li>
+      <li>Pas 4</li>
+    </ol>
+  </div>
+  <div class="tab-pane" id="ios_sync">
+    <ol>
+      <li>Pas 1</li>
+      <li>Pas 2</li>
+      <li>Pas 3</li>
+      <li>Pas 4</li>
+    </ol>
+  </div>
+</div>
 {% endblock %}

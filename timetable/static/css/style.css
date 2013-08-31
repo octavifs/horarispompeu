@@ -30,7 +30,7 @@ body {
 html {
   background-color: #f0f0f0;
   /*See http://css-tricks.com/perfect-full-page-background-image/*/
-  background: url(bg4.jpg) no-repeat center center fixed;
+  background: url(bg5.jpg) no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -119,8 +119,18 @@ body {
   font-size: 18px;
 }
 
-.active {
+.btn.active {
   color: #c8102e !important;
+}
+
+.nav-tabs li.active a {
+  color: #fff;
+  background-color: #d9534f;
+}
+
+.nav-tabs li a:hover, .nav-tabs li.active a:hover {
+  color: #fff;
+  background-color: #c8102e;
 }
 
 /* Responsive: Portrait tablets and up */

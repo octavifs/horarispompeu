@@ -25,4 +25,5 @@ urlpatterns = patterns('',
     url(r'^curs/$', views.year, name='year'),
     url(r'^assignatures/$', views.subject, name='subject'),
     url(r'^calendari/$', views.calendar, name='calendar'),
+    url(r'^subscriu/$', views.subscription, name='subscription'),
 )

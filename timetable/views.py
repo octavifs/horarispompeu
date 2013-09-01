@@ -19,6 +19,8 @@ from django.db.models import Q
 import operator
 import hashlib
 from django.core.files.base import ContentFile
+import os
+import subprocess
 
 from timetable.models import *
 import timetable.calendar
@@ -121,5 +123,16 @@ def calendar(request):
                            ContentFile(timetable.calendar.generate(lessons)))
         calendar.degree_subjects.add(*degree_subjects)
     finally:
-        context = {'calendar_url': calendar.file.url}
+        context = {
+            'calendar_url': calendar.file.url,
+            'calendar_name': calendar.name
+        }
         return render(request, 'calendar.html', context)
+
+
+def subscription(request):
+    email = "--email={}".format(request.POST["email"])
+    password = "--password={}".format(request.POST["password"])
+    calendar = "--calendar={}".format(request.POST["calendar"])
+    result = subprocess.call(["casperjs", "/Users/octavi/projects/horarispompeu/casperjs/addICSCal.js", email, password, calendar])
+    return render(request, 'subscription_result.html', {'result': result})

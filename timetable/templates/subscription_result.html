@@ -1,0 +1,18 @@
+{% if result == 0 %}
+<div class="alert alert-success alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <strong>Felicitats!</strong>, ja estàs subscrit al calendari.
+</div>
+
+{% elif result == 2 %}
+<div class="alert alert-danger alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <strong>Atenció!</strong>, no hem pogut accedir al compte. Comprova el correu i la contrassenya.
+</div>
+
+{% else %}
+<div class="alert alert-danger alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <strong>Atenció!</strong>, algun error ens ha impedit completar la subscripció (potser ja l'havies completat?). Intenta-ho més tard o prova de realitzar-la manualment.
+</div>
+{% endif %}

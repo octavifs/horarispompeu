@@ -58,7 +58,7 @@
   <div class="tab-pane" id="manual_subscription">
     <input type="text" class="form-control-static input-lg col-xs-12" spellcheck="false" id="calendar_url" value="{{ calendar_url }}" onclick=this.select()>
     <p>1. Copia la URL superior</p>
-    <p>2. Entra al teu Google Calendar</p>
+    <p>2. Entra al teu Google Calendar (des d'un PC / Mac)</p>
     <p>3. Fes click al desplegable "Otros calendarios" > Añadir por URL</p>
     <img src="/static/pas1.png" />
     <p>4. Copia la URL i fes click a "Añadir calendario"</p>
@@ -102,11 +102,19 @@
       data: $("#subscription_form").serialize(),
       beforeSend: function() {
         $(that).button('loading');
+        $("#subscription_form > .form-group").css("filter", "blur(2px)");
         $("#subscription_form > .form-group").css("-webkit-filter", "blur(2px)");
+        $("#subscription_form > .form-group").css("-moz-filter", "blur(2px)");
+        $("#subscription_form > .form-group").css("-o-filter", "blur(2px)");
+        $("#subscription_form > .form-group").css("-ms-filter", "blur(2px)");
       },
       success: function(data) {
         $(that).button('reset');
+        $("#subscription_form > .form-group").css("filter", "blur(0px)");
         $("#subscription_form > .form-group").css("-webkit-filter", "blur(0px)");
+        $("#subscription_form > .form-group").css("-moz-filter", "blur(0px)");
+        $("#subscription_form > .form-group").css("-o-filter", "blur(0px)");
+        $("#subscription_form > .form-group").css("-ms-filter", "blur(0px)");
         $("#subscription_alert").html(data);
       }
     });

@@ -33,8 +33,5 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-manage.py
-horarispompeu
 horarispompeu.sublime-workspace
 horarispompeu.sublime-project
-resources

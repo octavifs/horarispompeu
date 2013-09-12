@@ -1,0 +1,9 @@
+Django==1.5.3
+argparse==1.2.1
+beautifulsoup4==4.3.1
+gunicorn==18.0
+icalendar==3.5
+python-dateutil==2.1
+pytz==2013d
+six==1.4.1
+wsgiref==0.1.2

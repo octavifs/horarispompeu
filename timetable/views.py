@@ -134,5 +134,5 @@ def subscription(request):
     email = "--email={}".format(request.POST["email"])
     password = "--password={}".format(request.POST["password"])
     calendar = "--calendar={}".format(request.POST["calendar"])
-    result = subprocess.call(["casperjs", "/Users/octavi/projects/horarispompeu/casperjs/addICSCal.js", email, password, calendar])
+    result = subprocess.call(["casperjs", "casperjs/addICSCal.js", email, password, calendar])
     return render(request, 'subscription_result.html', {'result': result})

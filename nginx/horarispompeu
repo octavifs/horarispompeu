@@ -1,0 +1,30 @@
+server {
+    listen 80;
+    server_name horarispompeu.com;
+    return 301 $scheme://www.horarispompeu.com$request_uri;
+}
+
+server {
+    listen 80;
+    server_name www.horarispompeu.com;
+    access_log  /var/log/nginx/horarispompeu.log;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /static/ {
+        root /home/tavi/horarispompeu/resources;
+    }
+
+    location /calendar/ {
+        root /home/tavi/horarispompeu/resources;
+        add_header Content-Type "text/calendar;charset=utf-8";
+        charset utf-8;
+    }
+
+}
+

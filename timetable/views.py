@@ -39,6 +39,13 @@ def degree(request):
 
 
 def year(request):
+    # First, deal with invalid inputs:
+    if (request.method == 'GET' or
+        not request.POST.getlist('degree')
+    ):
+        # This will raise a 500 error page on production
+        return render(request, '500.html', {})
+    # Once input is seemingly valid (the list may still contain invalid degree ids), retrieve years and groups:
     degree_and_group_list = DegreeSubject.objects.filter(
         degree__in=request.POST.getlist('degree')
     ).order_by(
@@ -59,13 +66,19 @@ def year(request):
 
 
 def subject(request):
-    academic_year = AcademicYear.objects.get(pk='2012-13')
+    # First, deal with invalid inputs:
+    if (request.method == 'GET' or
+        not request.POST.getlist('degree_year')
+    ):
+        # This will raise a 500 error page on production
+        return render(request, '500.html', {})
+    # Once input is seemingly valid render the view:
+    academic_year = AcademicYear.objects.latest('pk')
     degree_year = request.POST.getlist('degree_year')
     courses = []
     for entry in degree_year:
         degree_id, course, group = entry.split('_')
         courses.append((degree_id, course, group))
-    degree_subjects = []
     q_list = []
     for degree, course, group in courses:
         q = Q(degree=degree, year=course, group=group,
@@ -90,7 +103,14 @@ def subject(request):
 
 
 def calendar(request):
-    academic_year = AcademicYear.objects.get(pk='2012-13')
+    # First, deal with invalid inputs:
+    if (request.method == 'GET' or
+        not request.POST.getlist('degree_subject')
+    ):
+        # This will raise a 500 error page on production
+        return render(request, '500.html', {})
+    # Once input is seemingly valid render the view:
+    academic_year = AcademicYear.objects.latest('pk')
     # degree_subjects contains a list with strings with the format
     # {subject_id}_{group}
     raw_selected_subjects = request.POST.getlist('degree_subject')
@@ -131,6 +151,15 @@ def calendar(request):
 
 
 def subscription(request):
+    # First, deal with invalid inputs:
+    if (request.method == 'GET' or
+        not request.POST["email"] or
+        not request.POST["password"] or
+        not request.POST["calendar"]
+    ):
+        # This will render a 500 error page on production
+        return render(request, '500.html', {})
+    # Once input is seemingly valid render the view:
     email = "--email={}".format(request.POST["email"])
     password = "--password={}".format(request.POST["password"])
     calendar = "--calendar={}".format(request.POST["calendar"])

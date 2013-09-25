@@ -4,7 +4,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    ('Octavi Font', 'tavifont@gmail.com')
+    ('Octavi Font', 'tavifont@gmail.com'),
     # ('Your Name', 'your_email@example.com'),
 )
 
@@ -24,7 +24,11 @@ DATABASES = {
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "horarispompeu.com"
+]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -67,6 +71,10 @@ STATIC_ROOT = 'resources/static/'
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
 STATIC_URL = '/static/'
+
+# Timetable root. Where previous timetable sources (.html from ESUP) will be
+# stored.
+TIMETABLE_ROOT = 'resources/timetable'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -113,6 +121,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    'timetable/templates',
 )
 
 INSTALLED_APPS = (
@@ -157,3 +166,12 @@ LOGGING = {
         },
     }
 }
+
+#Set up email. Dummy config
+#EMAIL_USE_TLS = True
+#EMAIL_PORT = 587
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_HOST_USER = 'someuser@gmail.com'
+#EMAIL_HOST_PASSWORD = 'somepassword'
+#DEFAULT_FROM_EMAIL = 'someuser@gmail.com'
+#SERVER_EMAIL = 'someuser@gmail.com'

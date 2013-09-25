@@ -18,6 +18,7 @@ from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 from django.db.models.query import QuerySet
 from django.core.files.base import ContentFile
+from django.conf import settings
 from django.db.models import Q
 from timetable.models import *
 import requests
@@ -65,14 +66,14 @@ class Command(BaseCommand):
                     schedule["term"],
                     schedule["group"],
                     schedule["url"],
-                    schedule["filename"]
+                    os.path.join(settings.TIMETABLE_ROOT, schedule["filename"])
                 )
         # Only update calendars (.ics files) that have been modified.
         self.update_calendars(modified_degreesubjects)
 
     def update(self, faculty, academic_year, degree, year, term, group, url, file_path, overwrite=True):
-        print ""
-        print url
+        print("")
+        print(url)
         # Get HTML from the ESUP website
         r = requests.get(url)
         new_html = r.text
@@ -83,13 +84,13 @@ class Command(BaseCommand):
             f.close()
         except IOError:
             # If old html could not be opened. Alert about it but go on
-            print "Could not open " + file_path
+            print("Could not open " + file_path)
             old_html = ""
         # Check for differences. If equal, no need to process it.
         if hash(old_html) == hash(new_html):
-            print "\tNo changes since last update..."
+            print("\tNo changes since last update...")
             return QuerySet(model=DegreeSubject)
-        print "\tUpdating..."
+        print("\tUpdating...")
         # Parse old html into a set of parser.Lessons
         old_lessons = set(parser.parse(old_html))
         # Parse new html into a set of parser.Lessons
@@ -109,13 +110,16 @@ class Command(BaseCommand):
                 f.close()
         except IOError:
             # If old html could not be written. Alert about it but go on
-            print "Could not write " + file_path
-            print "HTML not updated"
+            print("Could not write " + file_path)
+            print("HTML not updated")
         #
         # Create a list of modified DegreeSubjects
         #
         # First, collect changed lessons
         modified_lessons = deleted_lessons | inserted_lessons  # set union
+        # If no lessons modified, return an empty QuerySet
+        if not modified_lessons:
+            return QuerySet(model=DegreeSubject)
         # select SubjectAlias that contain a subject that has changed
         q_list = (Q(name=lesson.subject) for lesson in modified_lessons)
         modified_subjectaliases = SubjectAlias.objects.filter(reduce(operator.or_, q_list))

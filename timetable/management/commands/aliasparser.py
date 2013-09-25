@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 Degree(faculty=faculty, name=entry["degree"]).save()
             # Now that everything is initialized, start going through timetables
             for timetable in entry["timetables"]:
-                print timetable["url"]
+                print(timetable["url"])
                 html = requests.get(timetable["url"]).text
                 self.parse(html)
 

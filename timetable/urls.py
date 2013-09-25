@@ -13,10 +13,6 @@
 # limitations under the License.
 
 from django.conf.urls import patterns, url
-from django.http import HttpResponseRedirect
-from django.views.generic.base import RedirectView
-
-
 from timetable import views
 
 urlpatterns = patterns('',

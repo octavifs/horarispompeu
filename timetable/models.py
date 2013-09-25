@@ -82,11 +82,11 @@ def _subject_delete(sender, instance, **kwargs):
             'faculty': instance.faculty,
             'name': instance.name,
         }
-        print fields
+        print(fields)
         duplicate = SubjectDuplicate(**fields)
         duplicate.save()
     except IntegrityError, e:
-        print e
+        print(e)
 
 
 class SubjectAlias(models.Model):
@@ -231,7 +231,7 @@ def _lesson_insert(sender, instance, **kwargs):
         inserted_record = LessonInsert(lesson=instance)
         inserted_record.save()
     except IntegrityError, e:
-        print e
+        print(e)
 
 
 @receiver(post_delete, sender=Lesson)
@@ -253,7 +253,7 @@ def _lesson_delete(sender, instance, **kwargs):
         deleted_record = LessonDelete(lesson=archived_lesson)
         deleted_record.save()
     except IntegrityError, e:
-        print e
+        print(e)
 
 
 @receiver(post_delete, sender=LessonDelete)
@@ -261,6 +261,6 @@ def _lessondelete_delete(sender, instance, **kwargs):
     try:
         instance.lesson.delete()
     except IntegrityError, e:
-        print e
+        print(e)
     except LessonArchive.DoesNotExist:
         pass

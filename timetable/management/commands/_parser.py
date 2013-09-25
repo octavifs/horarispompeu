@@ -22,6 +22,7 @@ from icalendar import Calendar, Event
 from StringIO import StringIO
 import copy
 import re
+import traceback
 
 
 class Lesson(object):
@@ -169,5 +170,12 @@ def parse(html):
                     h_init, h_end = parsehours(cell.get_text().strip())
                 else:
                     day = days[numcell]
-                    lessons.extend(parselesson(cell, h_init, h_end, day))
+                    try:
+                        lessons.extend(parselesson(cell, h_init, h_end, day))
+                    except:
+                        error = "Could not parse cell:\n {}\n\n{}".format(
+                            cell,
+                            traceback.format_exc()
+                        )
+                        print(error)
     return lessons

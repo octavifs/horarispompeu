@@ -1,9 +1,23 @@
 # Horaris Pompeu
 
-Horaris pompeu is a Django app that enables students from the University Pompeu Fabra (Barcelona) to create their own timetables by selecting any combination subjects and creating a custom iCalendar (.ics) file that can be subscribed from Google Calendar and synchronized from any computer or mobile device.
+Horaris Pompeu is a Django webapp that makes it easy to create custom calendars adapted to each students' needs. Calendars can be subscribed using Google Calendar, and synchronized on any computer or mobile device.
 
-The Django app also updates the calendars with new events automatically, so you will never be caught off guard.
+Calendar creation is a one-time process. Subscribed calendars refresh automatically, so they always stay up to date with the ones published in the ESUP webpage.
 
+## Features
+- parses subjects and lessons from ESUP timetable to its own DB schema
+- handles subject aliases and inconsistencies in the timetables
+- able to manually add, delete or modify erroneous entries
+- detects and processes inserted or deleted lessons in the official timetables
+- able to automatically update generated calendars to stay up to date with the official timetables
+- web interface optimized for mobile and desktop
+
+## Documentation
+
+See the [docs overview](docs/overview.md).
+
+## Dependencies
+See [requirements.txt](requirements.txt).
 
 ## Supported degrees and faculties
 3 degrees (given by the ESUP) are supported:
@@ -16,6 +30,8 @@ The database schema should be flexible enough so that adding new degrees and fac
 
 
 ## Usage
+    WARNING. Somewhat out of date
+
 1. Put the timetable folder inside your django project.
 2. Update the `settings.py` of your django project to include `timetable` in the `INSTALLED_APPS` variable.
 3. `python manage.py syncdb` to prepare the database.

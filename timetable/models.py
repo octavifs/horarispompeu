@@ -23,6 +23,11 @@ from django.db import IntegrityError
 
 
 class Faculty(models.Model):
+    """
+    Stores the name of the faculty giving the classes. The name should be unique
+    within a university, so it is used as the primary key for the model.
+    e.g. ESUP is the faculty name of the engineering section in the UPF.
+    """
     name = models.CharField(max_length=100, primary_key=True)
 
     class Meta:
@@ -33,10 +38,17 @@ class Faculty(models.Model):
 
 
 class Degree(models.Model):
+    """
+    Stores the name of a degree. A degree is linked to some faculty.
+    The pair degree name and faculty are unique.
+    A degree has a series of subjects, each one given on a specific term and
+    year. Various degrees can share subjects.
+    """
     faculty = models.ForeignKey(Faculty)
     name = models.CharField(max_length=100)
 
     class Meta:
+        unique_together = ("faculty", "name")
         ordering = ["name"]
 
     def __unicode__(self):
@@ -49,6 +61,12 @@ class Degree(models.Model):
 
 
 class Subject(models.Model):
+    """
+    Stores the name of the subject.
+    A subject is taught by a faculty. Subjects are not linked to any degree in
+    particular, since there are many degrees that share the same subjects.
+    A pair of subject name and faculty are unique.
+    """
     faculty = models.ForeignKey(Faculty)
     name = models.CharField(max_length=100)
 
@@ -61,7 +79,8 @@ class Subject(models.Model):
 
 
 class SubjectDuplicate(models.Model):
-    """Stores subjects that appear multiple times on the degree subject list
+    """
+    Stores subjects that appear multiple times on the degree subject list
     under similar names.
     """
     faculty = models.ForeignKey(Faculty)
@@ -77,6 +96,10 @@ class SubjectDuplicate(models.Model):
 
 @receiver(post_delete, sender=Subject)
 def _subject_delete(sender, instance, **kwargs):
+    """
+    Whenever a subject is deleted, it is stored as a duplicate, so when the
+    parser encounters it again, it will be skipped.
+    """
     try:
         fields = {
             'faculty': instance.faculty,
@@ -90,11 +113,12 @@ def _subject_delete(sender, instance, **kwargs):
 
 
 class SubjectAlias(models.Model):
-    '''Links a subject alias to its 'official' name.
+    """
+    Links a subject alias to its 'official' name.
     Parsed data is not always accurate with subject names, so to solve
     inconsistencies, this model will link those mispellings with the actual
-    subject.
-    '''
+    subject object.
+    """
     name = models.CharField(max_length=100)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True,
                                 blank=True)
@@ -106,12 +130,18 @@ class SubjectAlias(models.Model):
 
 
 class AcademicYear(models.Model):
+    """
+    AcademicYear refers to the specific year the lessons are taking place.
+    E.g. 2013-14, 2014-15...
+    """
     year = models.CharField(max_length=100, primary_key=True)
 
     def __unicode__(self):
         return self.year
 
 
+# Since there are only 2 groups available, I put them in a tuple instead of a
+# model
 GROUP_CHOICES = (
     ("GRUP 1", "GRUP 1"),
     ("GRUP 2", "GRUP 2"),
@@ -119,6 +149,13 @@ GROUP_CHOICES = (
 
 
 class LessonCommon(models.Model):
+    """
+    Base Model for lesson. A lesson is a class, from an specific subject, taking
+    place on a specific day, for some group.
+    This base model is used for the 2 derived Lesson Models:
+        - Lesson
+        - LessonArchive
+    """
     subject = models.ForeignKey(Subject, null=True, blank=True)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
     subgroup = models.CharField(max_length=50, blank=True)
@@ -147,6 +184,9 @@ class LessonCommon(models.Model):
 
 
 class Lesson(LessonCommon):
+    """
+    Every active and valid lesson is a lesson model.
+    """
     class Meta:
         verbose_name_plural = 'Lessons'
         # Don't allow duplicate entries
@@ -155,6 +195,10 @@ class Lesson(LessonCommon):
 
 
 class DegreeSubject(models.Model):
+    """
+    This model links a subject with a degree. It also stores some additional
+    information, like the academic term, year or group.
+    """
     TERM_CHOICES = (
         ('1r Trimestre', '1r Trimestre'),
         ('2n Trimestre', '2n Trimestre'),
@@ -194,6 +238,12 @@ class DegreeSubject(models.Model):
 
 
 class Calendar(models.Model):
+    """
+    Stores the reference to a calendar .ics file, with an arbitrary number of
+    degree_subjects. There is the name of the file, the path to the file and
+    a ManyToManyField that links to the degree_subjects that conform the
+    calendar.
+    """
     name = models.CharField(max_length=128, primary_key=True, blank=False)
     file = models.FileField(upload_to='.')
     degree_subjects = models.ManyToManyField(DegreeSubject)
@@ -204,11 +254,21 @@ class Calendar(models.Model):
 # Lessons
 #
 class LessonArchive(LessonCommon):
+    """
+    Every deleted lesson is saved as a LessonArchive. This is done to prevent
+    destruction of actual data. This way, if an update goes wrong and deletes
+    lessons for the wrong reasons, you can still salvage the old data and
+    restore it.
+    """
     class Meta:
         verbose_name_plural = 'Lessons Archives'
 
 
 class LessonInsert(models.Model):
+    """
+    Save a record of which Lessons have been inserted in the DB and when did
+    that happen. This model is linked with the signal _lesson_insert
+    """
     # Delete entry if Lesson is removed
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
@@ -218,6 +278,10 @@ class LessonInsert(models.Model):
 
 
 class LessonDelete(models.Model):
+    """
+    Save a record of which Lessons have been deleted in the DB and when did
+    that happen. This model is linked with the signal _lesson_delete
+    """
     lesson = models.ForeignKey(LessonArchive, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
@@ -227,6 +291,10 @@ class LessonDelete(models.Model):
 
 @receiver(post_save, sender=Lesson)
 def _lesson_insert(sender, instance, **kwargs):
+    """
+    When a lesson is saved to the database, register that event in the
+    LessonInsert table.
+    """
     try:
         inserted_record = LessonInsert(lesson=instance)
         inserted_record.save()
@@ -236,6 +304,10 @@ def _lesson_insert(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Lesson)
 def _lesson_delete(sender, instance, **kwargs):
+    """
+    When a lesson is deleted from the Lessons table, register that event and
+    store the deleted instance in the LessonArchive table.
+    """
     try:
         fields = {
             'subject': instance.subject,
@@ -258,6 +330,9 @@ def _lesson_delete(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=LessonDelete)
 def _lessondelete_delete(sender, instance, **kwargs):
+    """
+    When deleting a LessonDelete record, delete the related LessonArchive.
+    """
     try:
         instance.lesson.delete()
     except IntegrityError, e:

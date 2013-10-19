@@ -86,15 +86,15 @@ class Command(BaseCommand):
             # If old html could not be opened. Alert about it but go on
             print("Could not open " + file_path)
             old_html = ""
-        # Check for differences. If equal, no need to process it.
-        if hash(old_html) == hash(new_html):
-            print("\tNo changes since last update...")
-            return QuerySet(model=DegreeSubject)
-        print("\tUpdating...")
         # Parse old html into a set of parser.Lessons
         old_lessons = set(parser.parse(old_html))
         # Parse new html into a set of parser.Lessons
         new_lessons = set(parser.parse(new_html))
+        # Check for differences. If equal, no need to process it.
+        if old_lessons == new_lessons:
+            print("\tNo changes since last update...")
+            return QuerySet(model=DegreeSubject)
+        print("\tUpdating...")
         # Compute deleted & the inserted lessons.
         deleted_lessons = old_lessons - new_lessons  # set difference
         inserted_lessons = new_lessons - old_lessons  # set difference
@@ -127,6 +127,31 @@ class Command(BaseCommand):
         q_list = (Q(subject=alias.subject) for alias in modified_subjectaliases)
         modified_degreesubjects = DegreeSubject.objects.filter(reduce(operator.or_, q_list))
         return modified_degreesubjects
+
+    def add_subjects(self, lessons, faculty, academic_year, degree, year, term, group):
+        faculty = Faculty.objects.get(name=faculty)
+        academic_year = AcademicYear.objects.get(year=academic_year)
+        # create degreesubjects
+        for entry in lessons:
+            alias = entry.subject
+            try:
+                subject = SubjectAlias.objects.get(name=alias).subject
+            except SubjectAlias.DoesNotExist, e:
+                raise e
+            degree_obj = Degree.objects.get(name=degree, faculty=faculty)
+            degreesubject = DegreeSubject(
+                subject=subject,
+                degree=degree_obj,
+                academic_year=academic_year,
+                year=year,
+                term=term,
+                group=group
+            )
+            try:
+                degreesubject.save()
+            except IntegrityError:
+                # This will trigger when trying to add a duplicate entry
+                pass
 
     def delete(self, deleted_lessons, faculty, academic_year, degree, year, term, group):
         academic_year = AcademicYear.objects.get(year=academic_year)

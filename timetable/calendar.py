@@ -24,13 +24,16 @@ import pytz
 
 def generate(lessons):
     """
-    Generates string with ical calendar from an iterable of lessons (QuerySet,
-    list...)
+    Generates ical calendar (as a byte string) from an iterable of lessons
+    (QuerySet, list...)
     """
+    # Adjust the timezone, so the time is correctly displayed in GCalendar
     tz = pytz.timezone('Europe/Madrid')
     cal = Calendar()
     cal.add('prodid', '-//Calendari HorarisPompeu.com//mxm.dk//')
     cal.add('version', '2.0')
+    # Give the calendar a name. I use this to remind the users where the
+    # calendar comes from, in case they need a new one.
     cal.add('x-wr-calname', 'horarispompeu.com')
     cal.add('x-wr-timezone', 'Europe/Madrid')
     for entry in lessons:

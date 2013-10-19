@@ -16,4 +16,5 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     # Timetable app
     url(r'^', include('timetable.urls')),
+    url(r'^api/', include('timetable.urls_api')),
 )

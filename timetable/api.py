@@ -14,17 +14,11 @@
 
 from __future__ import unicode_literals
 from django.shortcuts import render
-from django.template import Context, loader
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.core import serializers
 from django.views.decorators.http import require_http_methods
 from django.db.models.query import QuerySet
 from django.db.models import Model
-from django.db.models import Q
-import operator
-import hashlib
-from django.core.files.base import ContentFile
-import os
 import subprocess
 import json
 # from django.core.serializers.json import DjangoJSONEncoder
@@ -80,134 +74,62 @@ def degree(request, pk=None):
         return HttpResponseNotFound("Unknown key")
 
 
-def year(request):
-    # First, deal with invalid inputs:
-    if (request.method == 'GET' or
-        not request.POST.getlist('degree')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {})
-    # Once input is seemingly valid (the list may still contain invalid degree ids), retrieve years and groups:
-    degree_and_group_list = DegreeSubject.objects.filter(
-        degree__in=request.POST.getlist('degree')
-    ).order_by(
-        'degree',
-        'year',
-        'group'
-    ).values(
-        'degree',
-        'degree__name',
-        'year',
-        'group',
-    ).distinct()
-    degree_list = dict()
-    for entry in degree_and_group_list:
-        degree_list.setdefault(entry['degree__name'], []).append(entry)
-    context = {'degree_list': degree_list}
-    return render(request, 'year.html', context)
-
-
-def lesson(request):
-    return HttpResponse("")
-
-
-def subject(request):
-    # First, deal with invalid inputs:
-    if (request.method == 'GET' or
-        not request.POST.getlist('degree_year')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {})
-    # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.latest('pk')
-    degree_year = request.POST.getlist('degree_year')
-    courses = []
-    for entry in degree_year:
-        degree_id, course, group = entry.split('_')
-        courses.append((degree_id, course, group))
-    q_list = []
-    for degree, course, group in courses:
-        q = Q(degree=degree, year=course, group=group,
-              academic_year=academic_year)
-        q_list.append(q)
-    degree_subjects = DegreeSubject.objects.filter(
-        reduce(operator.or_, q_list)
-    ).order_by(
-        'year',
-        'subject__name',
-    ).values(
-        'subject',
-        'subject__name',
-        'group',
-        'year'
-    ).distinct()
-    year_degree_subjects = {}
-    for degree_subject in degree_subjects:
-        year_degree_subjects.setdefault(degree_subject['year'], []).append(degree_subject)
-    context = {'year_degree_subjects': sorted(year_degree_subjects.iteritems())}
-    return render(request, 'subject.html', context)
-
-
-def calendar(request):
-    # First, deal with invalid inputs:
-    if (request.method == 'GET' or
-        not request.POST.getlist('degree_subject')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {})
-    # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.latest('pk')
-    # degree_subjects contains a list with strings with the format
-    # {subject_id}_{group}
-    raw_selected_subjects = request.POST.getlist('degree_subject')
-    raw_selected_subjects.sort()
-    string_selected_subjects = "\n".join(raw_selected_subjects)
-    # The calendar will have, for its filename, the SHA1 hash of the sorted
-    # pairs of (subject_id, group) returned by the selection form
-    subjects_hash = hashlib.sha1(string_selected_subjects).hexdigest()
-    calendar = None
+@require_http_methods(["GET"])
+def subject(request, pk=None):
+    R = request.REQUEST
+    if not pk:
+        faculty = Faculty.objects.get(pk='ESUP')
+        results = Subject.objects.filter(faculty=faculty)
+        if 'name' in R:
+            results = results.filter(name__contains=R['name'])
+        return jsonify(results)
     try:
-        calendar = Calendar.objects.get(pk=subjects_hash)
-    except Calendar.DoesNotExist:
-        calendar = Calendar(name=subjects_hash)
-        selected_subjects = \
-            [(lambda (s_id, group): (int(s_id), group))(e.split('_')) for e in
-             request.POST.getlist('degree_subject')]
-        if not selected_subjects:
-            # TODO:
-            # Throw some error when selectedsubjects has no subjects!
-            # or handle it on the subject view (or both)
-            pass
-        q_list = []
-        for subject_id, group in selected_subjects:
-            q = Q(subject=subject_id, group=group, academic_year=academic_year)
-            q_list.append(q)
-        subjects_group_filter = reduce(operator.or_, q_list)
-        lessons = Lesson.objects.filter(subjects_group_filter)
-        degree_subjects = DegreeSubject.objects.filter(subjects_group_filter)
-        calendar.file.save(calendar.name + '.ics',
-                           ContentFile(timetable.calendar.generate(lessons)))
-        calendar.degree_subjects.add(*degree_subjects)
-    finally:
-        context = {
-            'calendar_url': calendar.file.url,
-            'calendar_name': calendar.name
-        }
-        return render(request, 'calendar.html', context)
+        return jsonify(Subject.objects.get(pk=pk))
+    except Subject.DoesNotExist:
+        return HttpResponseNotFound("Unknown key")
 
 
+@require_http_methods(["GET"])
+def course(request, pk=None):
+    R = request.REQUEST
+    if not pk:
+        academic_year = AcademicYear.objects.latest('year')
+        results = DegreeSubject.objects.filter(academic_year=academic_year)
+        if 'subject' in R:
+            results = results.filter(subject=R['subject'])
+        if 'degree' in R:
+            results = results.filter(degree=R['degree'])
+        if 'year' in R:
+            results = results.filter(year=R['year'])
+        if 'term' in R:
+            results = results.filter(term=R['term'])
+        if 'group' in R:
+            results = results.filter(group=R['group'])
+        return jsonify(results)
+    try:
+        return jsonify(DegreeSubject.objects.get(pk=pk))
+    except DegreeSubject.DoesNotExist:
+        return HttpResponseNotFound("Unknown key")
+
+
+@require_http_methods(["GET"])
+def lesson(request, pk):
+    try:
+        degree_subject = DegreeSubject.objects.get(pk=pk)
+        return jsonify(degree_subject.lessons())
+    except DegreeSubject.DoesNotExist:
+        return HttpResponseNotFound("Unknown key")
+
+
+@require_http_methods(["POST"])
 def subscription(request):
+    R = request.REQUEST
     # First, deal with invalid inputs:
-    if (request.method == 'GET' or
-        not request.POST["email"] or
-        not request.POST["password"] or
-        not request.POST["calendar"]
-    ):
-        # This will render a 500 error page on production
-        return render(request, '500.html', {})
+    if (email not in R) or (password not in R) or (calendar not in R):
+        return HttpResponseBadRequest("Missing parameters")
     # Once input is seemingly valid render the view:
-    email = "--email={}".format(request.POST["email"])
-    password = "--password={}".format(request.POST["password"])
-    calendar = "--calendar={}".format(request.POST["calendar"])
+    email = "--email={}".format(R["email"])
+    password = "--password={}".format(R["password"])
+    calendar = "--calendar={}".format(R["calendar"])
     result = subprocess.call(["casperjs", "casperjs/addICSCal.js", email, password, calendar])
-    return render(request, 'subscription_result.html', {'result': result})
+    return jsonify({'result': result})

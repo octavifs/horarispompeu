@@ -16,10 +16,14 @@ from django.conf.urls import patterns, url
 from timetable import api
 
 urlpatterns = patterns('',
-    url(r'^faculty/$', api.faculty, name='faculty'),
-    url(r'^faculty/(?P<pk>\w+)/$', api.faculty, name='faculty'),
-    url(r'^degree/(?P<pk>\d+)/$', api.degree, name='degree'),
-    url(r'^degree/$', api.degree, name='degree'),
-    url(r'^lesson/$', api.lesson, name='lesson'),
-    url(r'^subject/$', api.subject, name='subject'),
+    url(r'^faculties/$', api.faculty, name='faculties'),
+    url(r'^faculties/(?P<pk>\w+)/$', api.faculty, name='faculties'),
+    url(r'^degrees/$', api.degree, name='degrees'),
+    url(r'^degrees/(?P<pk>\d+)/$', api.degree, name='degrees'),
+    url(r'^subjects/$', api.subject, name='subjects'),
+    url(r'^subjects/(?P<pk>\d+)/$', api.subject, name='subjects'),
+    url(r'^courses/$', api.course, name='courses'),
+    url(r'^courses/(?P<pk>\d+)/$', api.course, name='courses'),
+    url(r'^courses/(?P<pk>\d+)/lessons/$', api.lesson, name='lessons'),
+    url(r'^subscription/$', api.subscription, name='subscription'),
 )

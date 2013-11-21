@@ -57,6 +57,13 @@ class LessonAdmin(admin.ModelAdmin):
     date_hierarchy = 'date_start'
     list_filter = ['date_start', 'kind', 'group']
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # If we are in edit mode
+            # This prevents editing of raw_entry from readonly field.
+            return ('raw_entry', ) + self.readonly_fields
+        else:
+            return self.readonly_fields
+
 
 class CalendarAdmin(admin.ModelAdmin):
     def degree_subjects_list(self, calendar):

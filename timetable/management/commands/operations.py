@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+from timetable.models import SubjectAlias, Subject, DegreeSubject
 
 def insert_lessons(lessons, group, academic_year):
     """
@@ -27,7 +27,11 @@ def insert_subjectaliases(lessons):
     Insert SubjectAlias linked to lesson.subject, if none is found in the DB.
     Returns True if any of the inserts hits the DB. False otherwise.
     """
-    raise NotImplementedError()
+    new_alias = False
+    for lesson in lessons:
+        alias, created = SubjectAlias.objects.get_or_create(name=lesson.subject)
+        new_alias = new_alias or created
+    return new_alias
 
 
 def insert_degreesubjects(lessons, group, academic_year, degree, year, term):
@@ -37,7 +41,22 @@ def insert_degreesubjects(lessons, group, academic_year, degree, year, term):
     Raises exception if lesson.subject is not linked to any Subject in the DB
     (through a SubjectAlias object).
     """
-    raise NotImplementedError()
+    new_degreesubject = False
+    for lesson in lessons:
+        # This will raise a SubjectAlias.DoesNotExist if trying to insert a
+        # subject without its corresponding alias object.
+        alias = SubjectAlias.objects.get(name=lesson.subject)
+        # Get the object if exists or create it if not
+        degreesubject, created = DegreeSubject.objects.get_or_create(
+            subject=alias.subject,
+            degree=degree,
+            academic_year=academic_year,
+            year=year,
+            term=term,
+            group=group,
+        )
+        new_degreesubject = new_degreesubject or created
+    return new_degreesubject
 
 
 def update_calendars(subjects=None):

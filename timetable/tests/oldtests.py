@@ -34,6 +34,40 @@ import timetable.management.commands.initdb as initdb
 import timetable.management.commands.subjectparser as subjectparser
 
 
+class ModelTests(TestCase):
+    """
+    Tests for timetable models. To check that the constraints are respected.
+    """
+    def test_create_and_retrieve_faculty(self):
+        """
+        Creates a faculty from a string and saves it to the database. Also
+        retrieves it to check that everything was correctly performed.
+        """
+        faculty_name = "ESUP"
+        faculty = Faculty(name=faculty_name)
+        faculty.save()
+        retrieved_faculty = Faculty.objects.get(pk=faculty_name)
+        self.assertEqual(faculty, retrieved_faculty)
+
+    def test_create_and_retrieve_subject(self):
+        """
+        Create a subject, retrieve it from the DB and check that it matches.
+        """
+        faculty = Faculty(name="ESUP")
+        faculty.save()
+        name = "Some cool subject"
+        subject = Subject(faculty=faculty, name=name)
+        subject.save()
+        retrieved_subject = Subject.objects.get(name=name)
+        self.assertEqual(faculty, retrieved_subject)
+
+
+class UpdateSubjects(TestCase):
+    """
+    Tests the subject parser
+    """
+
+
 class DatabaseTests(TestCase):
     """
     Tests that insertion of duplicates in the DB model raises IntegrityError

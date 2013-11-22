@@ -18,21 +18,20 @@
 from __future__ import unicode_literals
 from bs4 import BeautifulSoup
 from datetime import date, time, datetime
-from icalendar import Calendar, Event
-from StringIO import StringIO
 import copy
 import re
-import traceback
+import itertools
 
 
 class Lesson(object):
-    subject = ""
-    kind = ""
-    group = ""
-    room = ""
-    date_start = ""
-    date_end = ""
-    raw_data = ""
+    def __init__(self):
+        self.subject = None
+        self.kind = None
+        self.group = None
+        self.room = None
+        self.date_start = None
+        self.date_end = None
+        self.raw_data = None
 
     def __key(self):
         return (self.subject, self.kind, self.group, self.room, self.date_start, self.date_end)
@@ -57,17 +56,33 @@ class Lesson(object):
         rep += "room: " + repr(self.room) + "\n"
         rep += "date_start: " + repr(self.date_start) + "\n"
         rep += "date_end: " + repr(self.date_end) + "\n"
-        #return rep
-        return self.raw_data
+        rep += "raw_data: " + repr(self.raw_data)
+        return rep
 
     def __repr__(self):
-        return self.raw_data
+        return self.__str__()
 
     def copy(self):
         return copy.deepcopy(self)
 
+#########################################################
+# Regular expressions needed to parse the ESUP calendar #
+#########################################################
+# See tests for details on what is or isn't parsed.
+
+# Format (aprox): HH:mm - HH:mm
+regexp_date = re.compile(r'^(\d{2}).*(\d{2}).*(\d{2}).*(\d{2})')
+# Format (aprox): group: {room or rooms}
+regexp_room = re.compile(r'^\w+:\s*(.+)$')
+# Format (aprox): {Letter}{Number}: {room or rooms}
+regexp_group = re.compile(r'^([a-zA-Z]\d+[a-zA-Z]?):\s*.+$')
+
 
 def parsedays(row):
+    """
+    Parses an html row from an esup calendar and returns a list of dates with
+    the day of each cell of the row.
+    """
     days = []
     for numcell, cell in enumerate(row.find_all("td")):
         if numcell == 0:
@@ -81,80 +96,59 @@ def parsedays(row):
 
 
 def parsehours(text):
-    hours_str = text.strip().replace('.', ':').split("-")
-    h_init_list = [int(data) for data in hours_str[0].split(":")]
-    h_end_list = [int(data) for data in hours_str[1].split(":")]
-    h_init = time(*h_init_list)
-    h_end = time(*h_end_list)
-    return h_init, h_end
+    """
+    Parses a text using regexp_date and obtains an initial and final hour for
+    an event.
+    """
+    hours = [int(h) for h in regexp_date.match(text.strip()).groups()]
+    h_init = time(hours[0], hours[1])
+    h_end = time(hours[2], hours[3])
+    return (h_init, h_end)
 
 
-def parselesson(cell, h_init, h_end, day):
-    lessons = []
-    buf = StringIO(cell.get_text().strip())
-    c = Lesson()
-    c.raw_data = cell.get_text().strip()
-    # This finds any string followed by :, any number of spaces and
-    # 2 digits separated by a point. The second digit might be preceded by any number of letters.
-    group_regex = re.compile(r"(\w+\s*\w*):?\s+(\d{2}[\.|\,]\w*\d+)")
-    for line in buf:
-        line = line.strip()
-        while line == "":
-            line = buf.readline().strip()
-        c.subject = line
-        for line in buf:
-            line = line.strip()
-            c.kind = line
-            if c.kind != "":
-                break
+def parselesson(text, h_init, h_end, day):
+    """
+    Generator that receives a string (from the html calendar) and yields as many
+    lessons as the cell contains.
+    If the parser can't fully process the entry, it will be yielded anyway,
+    although some of the content may be missing.
+    """
+    raw_data = text.strip()
+    # Divide input by lessons, if more than 1 are found per cell
+    lessons = re.split(r'----+', raw_data)
+    for lesson in lessons:
+        # Divide input by lines and clear them from unnecessary spaces
+        lines = [line.strip() for line in lesson.splitlines()]
+        if lines[1] == 'NO HI HA CLASSE':
+            continue
+        # Prepare a lesson
+        c = Lesson()
+        c.raw_data = raw_data
+        c.subject = lines[0]
+        c.kind = lines[1]
         c.date_start = datetime.combine(day, h_init)
         c.date_end = datetime.combine(day, h_end)
-        for line in buf:
-            line = line.strip()
-            if "----------------" in line:
-                break
-            if line == "":
-                continue
-            if " - " in line:
-                h_init, h_end = parsehours(line)
-                c.date_start = datetime.combine(day, h_init)
-                c.date_end = datetime.combine(day, h_end)
-                continue
-            g = group_regex.match(line)
-            if g is not None:
-                group = g.groups()[0]
-                room = g.groups()[1]
-                if "aula" in group.lower():
-                    group = ""
-                c.group = group
-                c.room = room
-                lessons.append(c)
-                c = c.copy()
-    return lessons
-
-
-def createcalendar(lessons):
-    cal = Calendar()
-    cal.add('prodid', '-//My calendar product//mxm.dk//')
-    cal.add('version', '2.0')
-
-    for entry in lessons:
-        event = Event()
-        summary = u" ".join([entry.subject, entry.kind, entry.group])
-        event.add('summary', summary)
-        event.add('dtstart', entry.date_start)
-        event.add('dtend', entry.date_end)
-        event.add('location', entry.room)
-        cal.add_component(event)
-    f = open('example.ics', 'wb')
-    f.write(cal.to_ical())
-    f.close()
-
-    pass
+        for l in lines[2:]:
+            # Update hour if necessary
+            if regexp_date.match(l):
+                parsed_date = parsehours(l)
+                c.date_start = datetime.combine(day, parsed_date[0])
+                c.date_end = datetime.combine(day, parsed_date[1])
+            # Yield a lesson for each group
+            else:
+                match_room = regexp_room.match(l)
+                match_group = regexp_group.match(l)
+                c.room = match_room.groups()[0] if match_room else None
+                c.group = match_group.groups()[0] if match_group else None
+                yield c.copy()
 
 
 def parse(html):
-    lessons = []
+    """
+    Returns an iterable with a list of Lesson objects. The lessons returned may
+    not be complete, since the parser can't deal with all the possible cases.
+    """
+    lessons = itertools.chain()
     soup = BeautifulSoup(html)
     for table in soup.find_all("table"):
         for numrow, row in enumerate(table.find_all("tr")):
@@ -166,16 +160,10 @@ def parse(html):
             h_init = None
             h_end = None
             for numcell, cell in enumerate(row.find_all("td")):
+                data = cell.get_text().strip()
                 if numcell == 0:
-                    h_init, h_end = parsehours(cell.get_text().strip())
+                    h_init, h_end = parsehours(data)
                 else:
                     day = days[numcell]
-                    try:
-                        lessons.extend(parselesson(cell, h_init, h_end, day))
-                    except:
-                        error = "Could not parse cell:\n {}\n\n{}".format(
-                            cell,
-                            traceback.format_exc()
-                        )
-                        print(error)
+                    lessons = itertools.chain(lessons, parselesson(data, h_init, h_end, day))
     return lessons

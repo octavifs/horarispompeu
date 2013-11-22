@@ -1,6 +1,7 @@
 from django.test import TestCase
 from timetable.management.commands import _parser as parser
 
+
 class LessonTests(TestCase):
     """
     Tests suite for the Lesson object
@@ -13,13 +14,13 @@ class LessonTests(TestCase):
 
     def test_constructor(self):
         lesson_repr = "<Lesson object>\n" \
-        "subject: 'Boring class'\n" \
-        "kind: None\n" \
-        "group: 'S101'\n" \
-        "room: None\n" \
-        "date_start: None\n" \
-        "date_end: None\n" \
-        "raw_data: 'Dummy raw data'"
+            "subject: 'Boring class'\n" \
+            "kind: None\n" \
+            "group: 'S101'\n" \
+            "room: None\n" \
+            "date_start: None\n" \
+            "date_end: None\n" \
+            "raw_data: 'Dummy raw data'"
         self.assertEqual(repr(self.lesson), lesson_repr)
 
     def test_equality(self):

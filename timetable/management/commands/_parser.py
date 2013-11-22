@@ -24,14 +24,21 @@ import itertools
 
 
 class Lesson(object):
-    def __init__(self):
-        self.subject = None
-        self.kind = None
-        self.group = None
-        self.room = None
-        self.date_start = None
-        self.date_end = None
-        self.raw_data = None
+    def __init__(self,
+                 subject=None,
+                 kind=None,
+                 group=None,
+                 room=None,
+                 date_start=None,
+                 date_end=None,
+                 raw_data=None):
+        self.subject = subject
+        self.kind = kind
+        self.group = group
+        self.room = room
+        self.date_start = date_start
+        self.date_end = date_end
+        self.raw_data = raw_data
 
     def __key(self):
         return (self.subject, self.kind, self.group, self.room, self.date_start, self.date_end)
@@ -115,19 +122,25 @@ def parselesson(text, h_init, h_end, day):
     """
     raw_data = text.strip()
     # Divide input by lessons, if more than 1 are found per cell
-    lessons = re.split(r'----+', raw_data)
+    lessons = [lesson.strip() for lesson in re.split(r'----+', raw_data)]
     for lesson in lessons:
-        # Divide input by lines and clear them from unnecessary spaces
-        lines = [line.strip() for line in lesson.splitlines()]
-        if lines[1] == 'NO HI HA CLASSE':
+        # Divide input by lines. Also clear any unnecesary spaces or blank lines
+        lines = [line.strip() for line in lesson.splitlines() if line.strip()]
+        # If we have less than 3 lines, that means that there is no class
+        # Generally, we would find one of the following messages:
+        # - Festiu
+        # - Subject\n NO HI HA CLASSE
+        # So the best course of action is ignoring the iteration
+        if len(lines) < 3:
             continue
         # Prepare a lesson
-        c = Lesson()
-        c.raw_data = raw_data
-        c.subject = lines[0]
-        c.kind = lines[1]
-        c.date_start = datetime.combine(day, h_init)
-        c.date_end = datetime.combine(day, h_end)
+        c = Lesson(
+            raw_data=raw_data,
+            subject=lines[0],
+            kind=lines[1],
+            date_start=datetime.combine(day, h_init),
+            date_end=datetime.combine(day, h_end)
+        )
         for l in lines[2:]:
             # Update hour if necessary
             if regexp_date.match(l):

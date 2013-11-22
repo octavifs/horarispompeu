@@ -136,6 +136,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    # Uncomment to enable django_extensions module (adds extra
+    # commands to ./manage.py)
+    # See http://django-extensions.readthedocs.org/en/latest/
+    # for more
+    'django_extensions',
     'timetable',
 )
 

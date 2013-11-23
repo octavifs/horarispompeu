@@ -1,5 +1,10 @@
 # Django settings for horarispompeu project.
 
+# Sets up which calendars should be parsed
+TERM = "1r Trimestre"
+ACADEMIC_YEAR = "2013-14"
+
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

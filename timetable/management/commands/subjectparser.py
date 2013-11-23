@@ -15,59 +15,115 @@
 # limitations under the License.
 
 from __future__ import unicode_literals
-from django.core.management.base import BaseCommand
-from django.db import IntegrityError
 import os
 import json
-from timetable.models import Faculty, Subject, SubjectAlias, SubjectDuplicate
+
+import requests
+from django.core.management.base import NoArgsCommand
+from django.conf import settings
+
+from timetable.models import Faculty, Subject, SubjectAlias, SubjectDuplicate, AcademicYear, Degree
+import _parser as parser
+import operations
 
 
-# Faculty names
 FILEPATH = os.path.dirname(__file__)
 SUBJECTS_FILEPATH = os.path.join(FILEPATH, "../../sources/subjects.json")
+TIMETABLES_FILEPATH = os.path.join(FILEPATH, "../../sources/timetables.json")
 
 
-class Command(BaseCommand):
-    help = "Parse subjects from the faculties and put them into the Database."
-    args = "input subjects list (JSON format)"
+class Command(NoArgsCommand):
+    help = (
+        "Add subjects to the database.\nAdds Subject objects, necessary "
+        "SubjectAlias models and creates DegreeSubjects linking degree with "
+        "a subject, so the UI chooser works OK. This command may fail, since "
+        "it parses the remote timetables and, apart from not being available "
+        "it may happen that some aliases are not correctly filled, so we dont "
+        "know which subject a lesson is referring to and the script fails.\n"
+        "If that happens, fill the aliases with its corresponding subject and "
+        "run the script again."
+    )
 
-    def handle(self, *args, **options):
-        if args:
-            subjects_file = open(args[0], 'r')
-        else:
-            subjects_file = open(SUBJECTS_FILEPATH, 'r')
-        faculty_subjects = json.load(subjects_file, encoding="utf-8")
-        for faculty, subjects in faculty_subjects.iteritems():
-            # First of all, we add any missing faculty to the database
-            # for faculty in self.faculties:
-            try:
-                faculty_entry = Faculty.objects.get(name=faculty)
-            except Faculty.DoesNotExist:
-                faculty_entry = Faculty(faculty)
-                faculty_entry.save()
-            for subject in subjects:
-                # Search if that subject had been deleted from the database
-                # (because it was a duplicate)
-                duplicates = SubjectDuplicate.objects.filter(
-                    faculty=faculty_entry,
-                    name=subject)
-                if duplicates.exists():  # If duplicates exist, skip subject
-                    continue
-                # Saves subject to the DB. If subject had already been saved,
-                # retrieve it from the DB
-                try:
-                    subject_entry = Subject(faculty=faculty_entry, name=subject)
-                    subject_entry.save()
-                except IntegrityError:
-                    subject_entry = Subject.objects.get(faculty=faculty_entry,
-                                                        name=subject)
-                # Creates an alias linking subject with the subject tuple
-                # More aliases will be added manually later
-                # If alias had already been saved, do nothing
-                try:
-                    subject_alias = SubjectAlias(
+    def handle_noargs(self, **options):
+        # First, create all the subjects and related Aliases (if missing)
+        self.stdout.write("Opening subjects file...")
+        with open(SUBJECTS_FILEPATH, 'r') as subjects_file:
+            faculty_subjects = json.load(subjects_file, encoding="utf-8")
+            for faculty, subjects in faculty_subjects.iteritems():
+                faculty_entry, created = Faculty.objects.get_or_create(name=faculty)
+                for subject in subjects:
+                    self.stdout.write("Processing subject {} for faculty {}: "
+                        .format(subject, faculty), ending="")
+                    # Search if that subject had been deleted from the database
+                    # (because it was a duplicate)
+                    duplicates = SubjectDuplicate.objects.filter(
+                        faculty=faculty_entry,
+                        name=subject)
+                    if duplicates.exists():  # If duplicates exist, skip subject
+                        self.stdout.write("DUPLICATE")
+                        continue
+                    # Create or get the subject entry
+                    subject_entry, created = Subject.objects.get_or_create(
+                        faculty=faculty_entry, name=subject)
+                    # Create or get the alias entry
+                    subject_alias, created = SubjectAlias.objects.get_or_create(
                         name=subject,
                         subject=subject_entry)
-                    subject_alias.save()
-                except IntegrityError:
-                    pass
+                    self.stdout.write("CREATED" if created else "OK")
+        self.stdout.write("Closing subjects file.")
+        # Now, parse the timetables, and add all missing SubjectAlias and
+        # DegreeSubjects.
+        self.stdout.write("Opening timetables file...")
+        with open(TIMETABLES_FILEPATH, 'r') as timetables_file:
+            degree_years = json.load(timetables_file, encoding="utf-8")
+            new_subjectaliases = False
+            for entry in degree_years:
+                # Don't process timetables that don't belong to the current year
+                if entry["academic_year"] != settings.ACADEMIC_YEAR:
+                    continue
+                for timetable in entry["timetables"]:
+                    # Don't process timetables that don't belong to the current
+                    # term
+                    if timetable["term"] != settings.TERM:
+                        continue
+                    self.stdout.write("Processing {} aliases: "
+                        .format(timetable["filename"]), ending="")
+                    # Download the timetable and parse its lessons
+                    r = requests.get(timetable["url"])
+                    timetable["lessons"] = list(parser.parse(r.text))
+                    created = operations.insert_subjectaliases(timetable["lessons"])
+                    self.stdout.write("NEW" if created else "OK")
+                    new_subjectaliases = new_subjectaliases or created
+            # Check if some aliases have been added
+            if new_subjectaliases:
+                self.stderr.write(
+                    "ERROR: some SubjectAliases are empty. Fill them "
+                    "using the admin interface before proceeding")
+                return
+            # Iterate over the json again, and now add DegreeSubjects
+            for entry in degree_years:
+                # Don't process timetables that don't belong to the current year
+                if entry["academic_year"] != settings.ACADEMIC_YEAR:
+                    continue
+                faculty_entry, created = Faculty.objects.get_or_create(
+                    name=entry["faculty"])
+                academic_year_entry, created = AcademicYear.objects.get_or_create(
+                    year=entry["academic_year"])
+                degree_entry, created = Degree.objects.get_or_create(
+                    faculty=faculty_entry, name=entry["degree"])
+                for timetable in entry["timetables"]:
+                    # Don't process timetables that don't belong to the current
+                    # term
+                    if timetable["term"] != settings.TERM:
+                        continue
+                    self.stdout.write("Processing {} degree subjects: "
+                        .format(timetable["filename"]), ending="")
+                    # This will insert the missing degreesubjects
+                    created = operations.insert_degreesubjects(
+                        timetable["lessons"],
+                        timetable["group"],
+                        academic_year_entry,
+                        degree_entry,
+                        timetable["year"],
+                        timetable["term"])
+                    self.stdout.write("NEW" if created else "OK")

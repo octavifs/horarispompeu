@@ -173,7 +173,7 @@ class LessonCommon(models.Model):
     def __unicode__(self):
         rep = [
             "<Lesson object>"
-            "subject: " + repr(self.subject.name),
+            "subject: " + repr(self.subject.name if self.subject else None),
             "kind: " + repr(self.kind),
             "group: " + repr(self.group),
             "room: " + repr(self.room),

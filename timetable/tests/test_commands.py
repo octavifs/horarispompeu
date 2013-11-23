@@ -69,13 +69,13 @@ class CommandTests(TestCase):
                 date_end=datetime(2013, 12, 4, 20, 30),
             ),
         ]
-        esup = Faculty(name="ESUP")
-        esup.save()
+        self.esup = Faculty(name="ESUP")
+        self.esup.save()
         self.subjects = [
-            Subject(faculty=esup, name="Polítiques Públiques de TIC"),
-            Subject(faculty=esup, name="Aplicacions Intel·ligents per a la Web"),
-            Subject(faculty=esup, name="Projectes Basats en Software Lliure"),
-            Subject(faculty=esup, name="Robòtica"),
+            Subject(faculty=self.esup, name="Polítiques Públiques de TIC"),
+            Subject(faculty=self.esup, name="Aplicacions Intel·ligents per a la Web"),
+            Subject(faculty=self.esup, name="Projectes Basats en Software Lliure"),
+            Subject(faculty=self.esup, name="Robòtica"),
         ]
         for s in self.subjects:
             s.save()
@@ -89,7 +89,7 @@ class CommandTests(TestCase):
             s.save()
         self.academic_year = AcademicYear(year="2013/14")
         self.academic_year.save()
-        self.degree = Degree(faculty=esup, name="Informàtica")
+        self.degree = Degree(faculty=self.esup, name="Informàtica")
         self.degree.save()
 
     def test_insert_subjectaliases(self):
@@ -196,3 +196,68 @@ class CommandTests(TestCase):
         self.assertTrue(
             operations.insert_lessons(lessons, "GRUP 1", self.academic_year)
         )
+
+    def test_delete_lessons(self):
+        # Insert lessons to the DB
+        self.assertTrue(
+            operations.insert_lessons(self.lessons, "GRUP 1", self.academic_year)
+        )
+        # Delete lessons from the DB
+        self.assertTrue(
+            operations.delete_lessons(self.lessons, "GRUP 1", self.academic_year)
+        )
+        # Check that there are no Lessons in the DB
+        self.assertFalse(Lesson.objects.all().exists())
+        # Delete a lesson with partial information form the DB. In this case,
+        # we will have manually filled various entries in the DB, and the lesson
+        # will match and delete those entries:
+        l = Lesson(
+            subject=Subject.objects.get(name="Polítiques Públiques de TIC"),
+            group="GRUP 1",
+            subgroup="S101",
+            kind="SEMINARI",
+            room="52.105",
+            date_start=datetime(2013, 11, 11, 10, 30),
+            date_end=datetime(2013, 11, 11, 11, 30),
+            raw_entry="Polítiques Públiques de TIC\n Seminari\n S101",
+            academic_year=self.academic_year
+        )
+        l.save()
+        subject = Subject.objects.get(name="Robòtica")
+        l = Lesson(
+            subject=subject,
+            group="GRUP 1",
+            subgroup="S101",
+            kind="SEMINARI",
+            room="52.105",
+            date_start=datetime(2013, 11, 11, 10, 30),
+            date_end=datetime(2013, 11, 11, 11, 30),
+            raw_entry="Robòtica\n Seminari\n S101",
+            academic_year=self.academic_year
+        )
+        l.save()
+        l = Lesson(
+            subject=subject,
+            group="GRUP 1",
+            subgroup="S102",
+            kind="SEMINARI",
+            room="52.105",
+            date_start=datetime(2013, 11, 11, 11, 30),
+            date_end=datetime(2013, 11, 11, 12, 30),
+            raw_entry="Robòtica\n Seminari\n S101",
+            academic_year=self.academic_year
+        )
+        l.save()
+        # Suppose the parser broke and we only have the raw data and the
+        # approximate date of the class
+        lessons = [
+            parser.Lesson(
+                date_start=datetime(2013, 11, 11, 10, 30),
+                date_end=datetime(2013, 11, 11, 12, 30),
+                raw_data="Robòtica\n Seminari\n S101"
+            ),
+        ]
+        self.assertTrue(
+            operations.delete_lessons(lessons, "GRUP 1", self.academic_year)
+        )
+        self.assertFalse(Lesson.objects.filter(subject=subject).exists())

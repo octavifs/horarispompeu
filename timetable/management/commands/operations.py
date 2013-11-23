@@ -1,4 +1,5 @@
 # encoding: utf-8
+from django.db.models.query import QuerySet
 from timetable.models import SubjectAlias, DegreeSubject, Lesson
 
 
@@ -33,9 +34,51 @@ def delete_lessons(lessons, group, academic_year):
     Delete the related models.Lesson from an iterable of _parser.Lesson.
     Group and academic year are applied to all lessons from the iterable fine
     grain the select query.
-    Returns True if any of the inserts hits the DB. False otherwise.
+    Returns True if any of the deletions hits the DB. False otherwise.
     """
-    raise NotImplementedError()
+    deleted_lessons = False
+    matches = Lesson.objects.none()
+    for lesson in lessons:
+        try:
+            alias = SubjectAlias.objects.get(name=lesson.subject)
+        except SubjectAlias.DoesNotExist:
+            alias = None
+        match = Lesson.objects.all()
+        # Add as many filters as possible, given that the field is available
+        if alias and alias.subject:
+            match = match.filter(subject=alias.subject)
+        if group:
+            match = match.filter(group=group)
+        if lesson.group:
+            match = match.filter(subgroup=lesson.group)
+        if lesson.kind:
+            match = match.filter(kind=lesson.kind)
+        if lesson.room:
+            match = match.filter(room=lesson.room)
+        if lesson.date_start:
+            match = match.filter(
+                date_start__day=lesson.date_start.day,
+                date_start__month=lesson.date_start.month,
+                date_start__year=lesson.date_start.year,
+            )
+        if lesson.date_end:
+            match = match.filter(
+                date_end__day=lesson.date_end.day,
+                date_end__month=lesson.date_end.month,
+                date_end__year=lesson.date_end.year,
+            )
+        if academic_year:
+            match = match.filter(academic_year=academic_year)
+        if lesson.raw_data:
+            match = match.filter(raw_entry=lesson.raw_data)
+        # Add match filter to the macrofilter
+        matches = matches | match
+    # We don't want repeated entries
+    matches = matches.distinct()
+    for m in matches:
+        m.delete()
+    deleted_lessons = matches.exists()
+    return deleted_lessons
 
 
 def insert_subjectaliases(lessons):

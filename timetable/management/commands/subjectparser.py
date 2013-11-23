@@ -21,10 +21,10 @@ import json
 import requests
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
+from timetable import operations
 
 from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree
 import _parser as parser
-import operations
 
 
 FILEPATH = os.path.dirname(__file__)

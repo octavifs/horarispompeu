@@ -1,10 +1,12 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-from django.test import TestCase
 from datetime import datetime
+
+from django.test import TestCase
+
+from timetable import operations
 from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree, DegreeSubject, Lesson, Calendar
 from timetable.management.commands import _parser as parser
-from timetable.management.commands import operations
 
 
 class CommandTests(TestCase):

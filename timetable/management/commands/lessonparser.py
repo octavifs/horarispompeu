@@ -21,11 +21,10 @@ import json
 import requests
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
+from timetable import operations
 
 from timetable.models import *
-from timetable.sources.esup import *
 import _parser as parser
-import operations
 
 FILEPATH = os.path.dirname(__file__)
 TIMETABLES_FILEPATH = os.path.join(FILEPATH, "../../sources/timetables.json")

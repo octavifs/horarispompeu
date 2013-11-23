@@ -28,7 +28,6 @@ from django.core.files.base import ContentFile
 
 from timetable.models import *
 import timetable.calendar
-import timetable.updater
 from timetable import parser
 import timetable.management.commands.lessonparser as lessonparser
 import timetable.management.commands.initdb as initdb

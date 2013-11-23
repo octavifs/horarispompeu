@@ -1,5 +1,6 @@
 # encoding: utf-8
-from timetable.models import SubjectAlias, Subject, DegreeSubject
+from timetable.models import SubjectAlias, DegreeSubject, Lesson
+
 
 def insert_lessons(lessons, group, academic_year):
     """
@@ -9,7 +10,22 @@ def insert_lessons(lessons, group, academic_year):
     academic year.
     Returns True if any of the inserts hits the DB. False otherwise.
     """
-    raise NotImplementedError()
+    new_lessons = False
+    for lesson in lessons:
+        alias, created = SubjectAlias.objects.get_or_create(name=lesson.subject)
+        l, created = Lesson.objects.get_or_create(
+            subject=alias.subject,
+            group=group,
+            subgroup=lesson.group if lesson.group else "",
+            kind=lesson.kind if lesson.kind else "",
+            room=lesson.room if lesson.room else "",
+            date_start=lesson.date_start,
+            date_end=lesson.date_end,
+            academic_year=academic_year,
+            raw_entry=lesson.raw_data if lesson.raw_data else "",
+        )
+        new_lessons = new_lessons or created
+    return new_lessons
 
 
 def delete_lessons(lessons, group, academic_year):

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from django.test import TestCase
 from datetime import datetime
-from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree, DegreeSubject
+from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree, DegreeSubject, Lesson
 from timetable.management.commands import _parser as parser
 from timetable.management.commands import operations
 
@@ -158,13 +158,41 @@ class CommandTests(TestCase):
                 date_end=datetime(2013, 12, 3, 10, 30),
             ),
         ]
-        self.assertRaises(SubjectAlias.DoesNotExist,
-                operations.insert_degreesubjects,
-                lessons,
-                "GRUP 1",
-                self.academic_year,
-                self.degree,
-                "1r",
-                "1r Trimestre"
+        self.assertRaises(
+            SubjectAlias.DoesNotExist,
+            operations.insert_degreesubjects,
+            lessons,
+            "GRUP 1",
+            self.academic_year,
+            self.degree,
+            "1r",
+            "1r Trimestre"
         )
 
+    def test_insert_lessons(self):
+        # Insert lessons to the DB
+        self.assertTrue(
+            operations.insert_lessons(self.lessons, "GRUP 1", self.academic_year)
+        )
+        # Check that there are len(self.lessons) to the DB
+        self.assertEqual(len(self.lessons), len(Lesson.objects.all()))
+
+        # Try to insert same lessons again
+        self.assertFalse(
+            operations.insert_lessons(self.lessons, "GRUP 1", self.academic_year)
+        )
+
+        # Insert a partial lesson
+        lessons = [
+            parser.Lesson(
+                subject="No Alias Available",
+                kind=None,
+                group=None,
+                room=None,
+                date_start=datetime(2013, 12, 3, 8, 30),
+                date_end=datetime(2013, 12, 3, 10, 30),
+            ),
+        ]
+        self.assertTrue(
+            operations.insert_lessons(lessons, "GRUP 1", self.academic_year)
+        )

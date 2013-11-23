@@ -22,7 +22,7 @@ import requests
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
 
-from timetable.models import Faculty, Subject, SubjectAlias, SubjectDuplicate, AcademicYear, Degree
+from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree
 import _parser as parser
 import operations
 
@@ -54,14 +54,6 @@ class Command(NoArgsCommand):
                 for subject in subjects:
                     self.stdout.write("Processing subject {} for faculty {}: "
                         .format(subject, faculty), ending="")
-                    # Search if that subject had been deleted from the database
-                    # (because it was a duplicate)
-                    duplicates = SubjectDuplicate.objects.filter(
-                        faculty=faculty_entry,
-                        name=subject)
-                    if duplicates.exists():  # If duplicates exist, skip subject
-                        self.stdout.write("DUPLICATE")
-                        continue
                     # Create or get the subject entry
                     subject_entry, created = Subject.objects.get_or_create(
                         faculty=faculty_entry, name=subject)

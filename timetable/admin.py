@@ -123,7 +123,6 @@ class LessonActionAdmin(admin.ModelAdmin):
 admin.site.register(Faculty)
 admin.site.register(Degree)
 admin.site.register(Subject, SubjectAdmin)
-admin.site.register(SubjectDuplicate)
 admin.site.register(SubjectAlias, SubjectAliasAdmin)
 admin.site.register(AcademicYear)
 admin.site.register(Lesson, LessonAdmin)

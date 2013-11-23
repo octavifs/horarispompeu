@@ -78,40 +78,6 @@ class Subject(models.Model):
         return "{0} a {1}".format(self.name, self.faculty)
 
 
-class SubjectDuplicate(models.Model):
-    """
-    Stores subjects that appear multiple times on the degree subject list
-    under similar names.
-    """
-    faculty = models.ForeignKey(Faculty)
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        unique_together = ("faculty", "name")
-        ordering = ("name", "faculty")
-
-    def __unicode__(self):
-        return "{0} a {1}".format(self.name, self.faculty)
-
-
-@receiver(post_delete, sender=Subject)
-def _subject_delete(sender, instance, **kwargs):
-    """
-    Whenever a subject is deleted, it is stored as a duplicate, so when the
-    parser encounters it again, it will be skipped.
-    """
-    try:
-        fields = {
-            'faculty': instance.faculty,
-            'name': instance.name,
-        }
-        print(fields)
-        duplicate = SubjectDuplicate(**fields)
-        duplicate.save()
-    except IntegrityError, e:
-        print(e)
-
-
 class SubjectAlias(models.Model):
     """
     Links a subject alias to its 'official' name.

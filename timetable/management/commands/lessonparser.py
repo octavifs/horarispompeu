@@ -14,38 +14,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.core.management.base import BaseCommand
-from django.db.utils import IntegrityError
-from django.db.models.query import QuerySet
-from django.core.files.base import ContentFile
-from django.conf import settings
-from django.db.models import Q
-from timetable.models import *
-import requests
 import io
 import os
 import json
-import operator
+
+import requests
+from django.core.management.base import NoArgsCommand
+from django.conf import settings
+
+from timetable.models import *
 from timetable.sources.esup import *
 import _parser as parser
-import timetable.calendar
+import operations
 
 FILEPATH = os.path.dirname(__file__)
 TIMETABLES_FILEPATH = os.path.join(FILEPATH, "../../sources/timetables.json")
 
 
-class Command(BaseCommand):
-    help = "Parse lessons and subjects from the ESUP degrees"
+class Command(NoArgsCommand):
+    help = (
+        "Parse lessons from ESUP timetables."
+    )
 
-    def handle(self, *args, **options):
+    def handle_noargs(self, **options):
         global TIMETABLES_FILEPATH
-        # Empty QuerySet that will hold all modified DegreeSubjects
-        modified_degreesubjects = QuerySet(model=DegreeSubject)
-        if args:
-            TIMETABLES_FILEPATH = args[0]
         with open(TIMETABLES_FILEPATH, 'r') as f:
             timetables = json.load(f, encoding="utf-8")
         for entry in timetables:
+            # Don't process timetables that don't belong to the current year
+            if entry["academic_year"] != settings.ACADEMIC_YEAR:
+                    continue
             # Each entry has a faculty, academic year and degree. It also
             # has a list of timetables.
             # First, we make sure that the basic info is in the system
@@ -56,9 +54,11 @@ class Command(BaseCommand):
                 Degree(faculty=faculty, name=entry["degree"]).save()
             # Now that everything is initialized, start going through timetables
             for schedule in entry["timetables"]:
-                # This is a set union. Union of modified degreesubjects in the
-                # modified_degreesubjects QuerySet
-                modified_degreesubjects = modified_degreesubjects | self.update(
+                # Don't process timetables that don't belong to the current
+                # term
+                if schedule["term"] != settings.TERM:
+                    continue
+                self.update(
                     entry["faculty"],
                     entry["academic_year"],
                     entry["degree"],
@@ -68,15 +68,17 @@ class Command(BaseCommand):
                     schedule["url"],
                     os.path.join(settings.TIMETABLE_ROOT, schedule["filename"])
                 )
-        # Only update calendars (.ics files) that have been modified.
-        self.update_calendars(modified_degreesubjects)
 
     def update(self, faculty, academic_year, degree, year, term, group, url, file_path, overwrite=True):
-        print("")
-        print(url)
+        """
+        Updates Lessons in the DB. Deletes outdated lessons and adds the new
+        entries.
+        """
+        self.stdout.write("Downloading {}... ".format(url), ending="")
         # Get HTML from the ESUP website
         r = requests.get(url)
         new_html = r.text
+        self.stdout.write("DONE")
         # Get HTML from previous run
         try:
             f = io.open(file_path, encoding='utf-8')
@@ -84,7 +86,7 @@ class Command(BaseCommand):
             f.close()
         except IOError:
             # If old html could not be opened. Alert about it but go on
-            print("Could not open " + file_path)
+            self.stdout.write("Could not open {}".format(file_path))
             old_html = ""
         # Parse old html into a set of parser.Lessons
         old_lessons = set(parser.parse(old_html))
@@ -92,148 +94,39 @@ class Command(BaseCommand):
         new_lessons = set(parser.parse(new_html))
         # Check for differences. If equal, no need to process it.
         if old_lessons == new_lessons:
-            print("\tNo changes since last update...")
-            return QuerySet(model=DegreeSubject)
-        print("\tUpdating...")
+            self.stdout.write("No changes since last update.")
+            return
+        self.stdout.write("Updating...")
         # Compute deleted & the inserted lessons.
         deleted_lessons = old_lessons - new_lessons  # set difference
         inserted_lessons = new_lessons - old_lessons  # set difference
+        modified_lessons = old_lessons ^ new_lessons  # set symmetric difference
+        if deleted_lessons:
+            self.stdout.write("Some lessons were deleted")
+        if inserted_lessons:
+            self.stdout.write("Some lessons were inserted")
+        # Add SubjectAlias if necessary
+        created = operations.insert_subjectaliases(modified_lessons)
+        if created:
+            self.stdout.write("Added some missing SubjectAliases")
+        academic_year_entry = AcademicYear.objects.get(year=academic_year)
         # Delete outdated lessons
-        self.delete(deleted_lessons, faculty, academic_year, degree, year, term, group)
+        deleted = operations.delete_lessons(deleted_lessons, group,
+                                            academic_year_entry)
+        if deleted:
+            self.stdout.write("Some Lessons were deleted")
         # Insert updated lessons
-        self.insert(inserted_lessons, faculty, academic_year, degree, year, term, group)
+        inserted = operations.insert_lessons(inserted_lessons, group,
+                                             academic_year_entry)
+        if inserted:
+            self.stdout.write("Some Lessons were inserted")
         # Update old HTML
         try:
             if overwrite:
                 f = io.open(file_path, 'w', encoding="utf-8")
                 f.write(new_html)
                 f.close()
+                self.stdout.write("HTML written to {}".format(file_path))
         except IOError:
             # If old html could not be written. Alert about it but go on
-            print("Could not write " + file_path)
-            print("HTML not updated")
-        #
-        # Create a list of modified DegreeSubjects
-        #
-        # First, collect changed lessons
-        modified_lessons = deleted_lessons | inserted_lessons  # set union
-        # If no lessons modified, return an empty QuerySet
-        if not modified_lessons:
-            return QuerySet(model=DegreeSubject)
-        # select SubjectAlias that contain a subject that has changed
-        q_list = (Q(name=lesson.subject) for lesson in modified_lessons)
-        modified_subjectaliases = SubjectAlias.objects.filter(reduce(operator.or_, q_list))
-        # select all Subjects referred by its SubjectAlias
-        q_list = (Q(subject=alias.subject) for alias in modified_subjectaliases)
-        modified_degreesubjects = DegreeSubject.objects.filter(reduce(operator.or_, q_list))
-        return modified_degreesubjects
-
-    def add_subjects(self, lessons, faculty, academic_year, degree, year, term, group):
-        faculty = Faculty.objects.get(name=faculty)
-        academic_year = AcademicYear.objects.get(year=academic_year)
-        # create degreesubjects
-        for entry in lessons:
-            alias = entry.subject
-            try:
-                subject = SubjectAlias.objects.get(name=alias).subject
-            except SubjectAlias.DoesNotExist, e:
-                raise e
-            degree_obj = Degree.objects.get(name=degree, faculty=faculty)
-            degreesubject = DegreeSubject(
-                subject=subject,
-                degree=degree_obj,
-                academic_year=academic_year,
-                year=year,
-                term=term,
-                group=group
-            )
-            try:
-                degreesubject.save()
-            except IntegrityError:
-                # This will trigger when trying to add a duplicate entry
-                pass
-
-    def delete(self, deleted_lessons, faculty, academic_year, degree, year, term, group):
-        academic_year = AcademicYear.objects.get(year=academic_year)
-        for entry in deleted_lessons:
-            alias = entry.subject
-            try:
-                subject = SubjectAlias.objects.get(name=alias).subject
-            except SubjectAlias.DoesNotExist, e:
-                raise e
-            try:
-                lesson = Lesson.objects.get(
-                    subject=subject,
-                    group=group,
-                    subgroup=entry.group,
-                    kind=entry.kind,
-                    room=entry.room,
-                    date_start=entry.date_start,
-                    date_end=entry.date_end,
-                    academic_year=academic_year
-                )
-                lesson.delete()
-            except Lesson.DoesNotExist:
-                pass
-
-    def insert(self, inserted_lessons, faculty, academic_year, degree, year, term, group):
-        faculty = Faculty.objects.get(name=faculty)
-        academic_year = AcademicYear.objects.get(year=academic_year)
-        # create degreesubjects
-        for entry in inserted_lessons:
-            alias = entry.subject
-            try:
-                subject = SubjectAlias.objects.get(name=alias).subject
-            except SubjectAlias.DoesNotExist, e:
-                raise e
-            degree_obj = Degree.objects.get(name=degree, faculty=faculty)
-            degreesubject = DegreeSubject(
-                subject=subject,
-                degree=degree_obj,
-                academic_year=academic_year,
-                year=year,
-                term=term,
-                group=group
-            )
-            try:
-                degreesubject.save()
-            except IntegrityError:
-                # This will trigger when trying to add a duplicate entry
-                pass
-        # create lessons
-        for entry in inserted_lessons:
-            alias = entry.subject
-            subject = SubjectAlias.objects.get(name=alias).subject
-            lesson = Lesson(
-                subject=subject,
-                group=group,
-                subgroup=entry.group,
-                kind=entry.kind,
-                room=entry.room,
-                date_start=entry.date_start,
-                date_end=entry.date_end,
-                academic_year=academic_year,
-                raw_entry=entry.raw_data,
-            )
-            try:
-                lesson.save()
-            except IntegrityError:
-                # This will trigger when trying to add a duplicate entry
-                pass
-
-    def update_calendars(self, degree_subjects):
-        calendars = Calendar.objects.filter(degree_subjects=degree_subjects)
-        for calendar in calendars:
-            lessons = QuerySet(model=Lesson)
-            for degreesubject in calendar.degree_subjects.all():
-                lessons = lessons | degreesubject.lessons()
-            lessons = lessons.distinct()
-            #lessons = reduce(operator.or_, calendar.degree_subjects.lessons)
-            calendar_string = timetable.calendar.generate(lessons)
-            try:
-                calendar.file.delete()
-            except OSError:
-                # File already deleted. No need to do anything.
-                pass
-            calendar.file.save(calendar.name + '.ics',
-                               ContentFile(calendar_string))
+            self.stderr("Could not write to {}. HTML not updated".format(file_path))

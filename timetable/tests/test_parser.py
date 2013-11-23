@@ -1,10 +1,12 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from django.test import TestCase
 from datetime import time, date, datetime
+
+from django.test import TestCase
 from bs4 import BeautifulSoup
-from timetable.management.commands import _parser as parser
+
+from timetable import parser
 
 
 class LessonTests(TestCase):

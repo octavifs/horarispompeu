@@ -5,8 +5,8 @@ from datetime import datetime
 from django.test import TestCase
 
 from timetable import operations
+from timetable import parser
 from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree, DegreeSubject, Lesson, Calendar
-from timetable.management.commands import _parser as parser
 
 
 class CommandTests(TestCase):

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from __future__ import unicode_literals
-import timetable.management.commands._parser as parser
+from timetable import parser
 
 
 def is_html_equal(old_html, new_html):

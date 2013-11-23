@@ -21,14 +21,15 @@ when you run "manage.py test timetable".
 Run them from the folder where manage.py is stored. (or the last 4 tests will, probably, fail)
 """
 #from __future__ import unicode_literals
-from django.test import TestCase
-from django.db import IntegrityError
-from django.core.files.base import ContentFile
-from timetable.models import *
 import datetime
+
+from django.test import TestCase
+from django.core.files.base import ContentFile
+
+from timetable.models import *
 import timetable.calendar
 import timetable.updater
-import timetable.management.commands._parser as parser
+from timetable import parser
 import timetable.management.commands.lessonparser as lessonparser
 import timetable.management.commands.initdb as initdb
 import timetable.management.commands.subjectparser as subjectparser

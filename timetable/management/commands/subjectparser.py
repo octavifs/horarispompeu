@@ -22,9 +22,9 @@ import requests
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
 from timetable import operations
+from timetable import parser
 
 from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree
-import _parser as parser
 
 
 FILEPATH = os.path.dirname(__file__)

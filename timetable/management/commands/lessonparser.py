@@ -101,10 +101,6 @@ class Command(NoArgsCommand):
         deleted_lessons = old_lessons - new_lessons  # set difference
         inserted_lessons = new_lessons - old_lessons  # set difference
         modified_lessons = old_lessons ^ new_lessons  # set symmetric difference
-        if deleted_lessons:
-            self.stdout.write("Some lessons were deleted")
-        if inserted_lessons:
-            self.stdout.write("Some lessons were inserted")
         # Add SubjectAlias if necessary
         created = operations.insert_subjectaliases(modified_lessons)
         if created:

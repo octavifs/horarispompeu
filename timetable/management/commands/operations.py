@@ -37,14 +37,20 @@ def delete_lessons(lessons, group, academic_year):
     Returns True if any of the deletions hits the DB. False otherwise.
     """
     deleted_lessons = False
+    # We start with no matches
     matches = Lesson.objects.none()
     for lesson in lessons:
         try:
             alias = SubjectAlias.objects.get(name=lesson.subject)
         except SubjectAlias.DoesNotExist:
             alias = None
+        # Start with an unfiltered QuerySet, and progressively add them
         match = Lesson.objects.all()
         # Add as many filters as possible, given that the field is available
+        # The style is a bit cumbersome, but if we didn't perform the check
+        # and add filters such as subject=None, the QuerySet would try to match
+        # entries with Null fields, instead of ignoring the filtering on that
+        # specific field.
         if alias and alias.subject:
             match = match.filter(subject=alias.subject)
         if group:
@@ -56,6 +62,8 @@ def delete_lessons(lessons, group, academic_year):
         if lesson.room:
             match = match.filter(room=lesson.room)
         if lesson.date_start:
+            # We are only interested in filtering by date, not hour. This is
+            # because the parser may not parse the time correctly.
             match = match.filter(
                 date_start__day=lesson.date_start.day,
                 date_start__month=lesson.date_start.month,

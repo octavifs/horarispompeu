@@ -20,34 +20,39 @@ class LessonTests(TestCase):
 
         self.setA = {
             parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S101"
-        ), parser.Lesson(
-            raw_data="Dummy raw data 2",
-            subject="Boring class 2",
-            group="S102"
-        ), parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S103"
-        )}
-
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S101"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data 2",
+                subject="Boring class 2",
+                group="S102"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S103"
+            )
+        }
         self.setB = {
             parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            kind="TEORIA",
-            room="52.119"
-        ), parser.Lesson(
-            raw_data="Dummy raw data 2",
-            subject="Boring class 2",
-            group="S102"
-        ), parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S103"
-        )}
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                kind="TEORIA",
+                room="52.119"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data 2",
+                subject="Boring class 2",
+                group="S102"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S103"
+            )
+        }
 
     def test_constructor(self):
         lesson_repr = "<Lesson object>\n" \
@@ -75,54 +80,62 @@ class LessonTests(TestCase):
     def test_set_intersection(self):
         intersection = {
             parser.Lesson(
-            raw_data="Dummy raw data 2",
-            subject="Boring class 2",
-            group="S102"
-        ), parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S103"
-        )}
+                raw_data="Dummy raw data 2",
+                subject="Boring class 2",
+                group="S102"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S103"
+            )
+        }
         # Elements common in both sets
         self.assertEqual(self.setA & self.setB, intersection)
 
     def test_set_union(self):
         union = {
             parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S101"
-        ), parser.Lesson(
-            raw_data="Dummy raw data 2",
-            subject="Boring class 2",
-            group="S102"
-        ), parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S103"
-        ), parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            kind="TEORIA",
-            room="52.119"
-        )}
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S101"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data 2",
+                subject="Boring class 2",
+                group="S102"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S103"
+            ),
+            parser.Lesson(
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                kind="TEORIA",
+                room="52.119"
+            )
+        }
         # Combined unique elements of setA and setB
         self.assertEqual(self.setA | self.setB, union)
 
     def test_set_difference(self):
         differenceA = {
             parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            group="S101"
-        )}
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                group="S101"
+            )
+        }
         differenceB = {
             parser.Lesson(
-            raw_data="Dummy raw data",
-            subject="Boring class",
-            kind="TEORIA",
-            room="52.119"
-        )}
+                raw_data="Dummy raw data",
+                subject="Boring class",
+                kind="TEORIA",
+                room="52.119"
+            )
+        }
         # Elements in A not found in B
         self.assertEqual(self.setA - self.setB, differenceA)
         # Elements in B not found in A

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from django.test import TestCase
 from datetime import datetime
-from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree, DegreeSubject, Lesson
+from timetable.models import Faculty, Subject, SubjectAlias, AcademicYear, Degree, DegreeSubject, Lesson, Calendar
 from timetable.management.commands import _parser as parser
 from timetable.management.commands import operations
 
@@ -261,3 +261,36 @@ class CommandTests(TestCase):
             operations.delete_lessons(lessons, "GRUP 1", self.academic_year)
         )
         self.assertFalse(Lesson.objects.filter(subject=subject).exists())
+
+    def test_update_calendars(self):
+        # First, add lessons to the database
+        self.assertTrue(
+            operations.insert_lessons(self.lessons, "GRUP 1", self.academic_year)
+        )
+        # Then add DegreeSubjects
+        self.assertTrue(operations.insert_degreesubjects(
+            self.lessons,
+            "GRUP 1",
+            self.academic_year,
+            self.degree,
+            "1r",
+            "1r Trimestre"
+        ))
+        # Try to update all calendars when there are none in the DB. This should
+        # return False
+        self.assertFalse(operations.update_calendars())
+        # Now add a Calendar for the Robòtica subject
+        degreesubject = DegreeSubject.objects.get(subject__name="Robòtica")
+        calendar = Calendar(name="test_update_calendars")
+        calendar.save()
+        calendar.degree_subjects.add(degreesubject)
+        # Now update all calendars. This should return True now:
+        self.assertTrue(operations.update_calendars())
+        # Now, we will try to update a subject for which we don't have any
+        # calendar. This should return False
+        subjects = [Subject.objects.get(name="Polítiques Públiques de TIC")]
+        self.assertFalse(operations.update_calendars(subjects))
+        # And we will repeat the process, but now for a Subject for which we
+        # have a valid calendar in the DB. This should return True
+        subjects = [Subject.objects.get(name="Robòtica")]
+        self.assertTrue(operations.update_calendars(subjects))

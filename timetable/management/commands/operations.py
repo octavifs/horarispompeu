@@ -1,6 +1,7 @@
 # encoding: utf-8
-from django.db.models.query import QuerySet
-from timetable.models import SubjectAlias, DegreeSubject, Lesson
+from django.core.files.base import ContentFile
+from timetable.models import SubjectAlias, DegreeSubject, Lesson, Calendar
+from timetable import calendar as ical
 
 
 def insert_lessons(lessons, group, academic_year):
@@ -132,4 +133,26 @@ def update_calendars(subjects=None):
     objects in the iterable. If subjects is None, update all calendars.
     Returns True if any calendar is updated. False otherwise.
     """
-    raise NotImplementedError()
+    updated_calendars = False
+    if not subjects:
+        calendars = Calendar.objects.all()
+    else:
+        calendars = Calendar.objects.none()
+        for subject in subjects:
+            calendars = calendars | Calendar.objects.filter(
+                degree_subjects__subject=subject)
+        calendars = calendars.distinct()
+    for calendar in calendars:
+        lessons = Lesson.objects.none()
+        for degreesubject in calendar.degree_subjects.all():
+            lessons = lessons | degreesubject.lessons()
+        lessons = lessons.distinct()
+        calendar_string = ical.generate(lessons)
+        try:
+            calendar.file.delete()
+        except OSError:
+            # File already deleted. No need to do anything.
+            pass
+        calendar.file.save(calendar.name + '.ics', ContentFile(calendar_string))
+        updated_calendars = True
+    return updated_calendars

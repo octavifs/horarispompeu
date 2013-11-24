@@ -24,4 +24,6 @@ urlpatterns = patterns(
     url(r'^calendari/$', views.calendar, name='calendar'),
     url(r'^subscriu/$', views.subscription, name='subscription'),
     url(r'^pmf/$', views.pmf, name='pmf'),
+    url(r'^problemes/$', views.contact, name='contact'),
+    url(r'^gracies/$', views.thanks, name='thanks'),
 )

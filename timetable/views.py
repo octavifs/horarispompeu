@@ -19,12 +19,14 @@ import hashlib
 import subprocess
 
 from django.shortcuts import render
+from django.http import HttpResponseRedirect
 from django.db.models import Q
 from django.core.files.base import ContentFile
 
 from django.conf import settings
 from timetable.models import *
 import timetable.calendar
+from timetable.forms import ContactForm
 
 
 # Create your views here.
@@ -179,3 +181,28 @@ def subscription(request):
 
 def pmf(request):
     return render(request, 'pmf.html', {'term': settings.TERM})
+
+
+def contact(request):
+    if request.method == 'POST':  # If the form has been submitted...
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            subject = '[SUPORT] {}'.format(form.cleaned_data['subject'])
+            message = form.cleaned_data['message']
+            sender = form.cleaned_data['sender']
+            recipients = ['horarispompeu@gmail.com']
+
+            from django.core.mail import send_mail
+            send_mail(subject, message, sender, recipients)
+            return HttpResponseRedirect('/gracies/')
+    else:
+        form = ContactForm()
+
+    return render(request, 'contact.html', {
+        'form': form,
+        'term': settings.TERM
+    })
+
+
+def thanks(request):
+    return render(request, 'thanks.html', {'term': settings.TERM})

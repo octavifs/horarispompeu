@@ -186,3 +186,4 @@ LOGGING = {
 #EMAIL_HOST_PASSWORD = 'somepassword'
 #DEFAULT_FROM_EMAIL = 'someuser@gmail.com'
 #SERVER_EMAIL = 'someuser@gmail.com'
+EMAIL_SUBJECT_PREFIX = '[HP] '

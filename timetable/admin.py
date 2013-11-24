@@ -56,13 +56,7 @@ class LessonAdmin(admin.ModelAdmin):
                     'subgroup', 'room', 'date_start', 'date_end', 'complete']
     date_hierarchy = 'date_start'
     list_filter = ['date_start', 'kind', 'group', 'subgroup', 'room']
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # If we are in edit mode
-            # This prevents editing of raw_entry from readonly field.
-            return ('raw_entry', ) + self.readonly_fields
-        else:
-            return self.readonly_fields
+    save_as = True
 
 
 class CalendarAdmin(admin.ModelAdmin):

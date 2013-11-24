@@ -1,11 +1,10 @@
 # Django settings for horarispompeu project.
 
+DEBUG = True
 # Sets up which calendars should be parsed
 TERM = "1r Trimestre"
 ACADEMIC_YEAR = "2013-14"
 
-
-DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -180,11 +179,8 @@ LOGGING = {
 }
 
 #Set up email. Dummy config
-#EMAIL_USE_TLS = True
-#EMAIL_PORT = 587
-#EMAIL_HOST = 'smtp.gmail.com'
-#EMAIL_HOST_USER = 'someuser@gmail.com'
-#EMAIL_HOST_PASSWORD = 'somepassword'
-#DEFAULT_FROM_EMAIL = 'someuser@gmail.com'
-#SERVER_EMAIL = 'someuser@gmail.com'
 EMAIL_SUBJECT_PREFIX = '[HP] '
+
+#Import private settings
+from settings_private import *
+

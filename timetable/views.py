@@ -187,7 +187,7 @@ def contact(request):
     if request.method == 'POST':  # If the form has been submitted...
         form = ContactForm(request.POST)
         if form.is_valid():
-            subject = '[SUPORT] {}'.format(form.cleaned_data['subject'])
+            subject = '[HP] [SUPORT] {}'.format(form.cleaned_data['subject'])
             message = form.cleaned_data['message']
             sender = form.cleaned_data['sender']
             recipients = ['horarispompeu@gmail.com']

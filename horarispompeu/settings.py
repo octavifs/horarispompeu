@@ -5,7 +5,7 @@ TERM = "1r Trimestre"
 ACADEMIC_YEAR = "2013-14"
 
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -147,6 +147,7 @@ INSTALLED_APPS = (
     # for more
     'django_extensions',
     'timetable',
+    'gunicorn',
 )
 
 # A sample logging configuration. The only tangible logging

@@ -175,6 +175,8 @@ class RegexpTests(TestCase):
 
         not_matches = [
             "S101: 52.321",
+            "54.043…54.048",
+            "54.008 - 54.009",
         ]
         for m in not_matches:
             match = parser.regexp_date.match(m)

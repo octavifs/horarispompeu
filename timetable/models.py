@@ -148,6 +148,10 @@ class LessonCommon(models.Model):
         ]
         return '\n'.join(rep)
 
+    def complete(self):
+        return bool(self.subject and self.group and self.kind and self.room)
+    complete.boolean = True
+
 
 class Lesson(LessonCommon):
     """

@@ -53,9 +53,9 @@ class LessonAdmin(admin.ModelAdmin):
 
     search_fields = ['id', 'subject__name']
     list_display = ['subject_name', 'subject_faculty', 'kind', 'group',
-                    'subgroup', 'room', 'date_start', 'date_end']
+                    'subgroup', 'room', 'date_start', 'date_end', 'complete']
     date_hierarchy = 'date_start'
-    list_filter = ['date_start', 'kind', 'group']
+    list_filter = ['date_start', 'kind', 'group', 'subgroup', 'room']
 
     def get_readonly_fields(self, request, obj=None):
         if obj:  # If we are in edit mode
@@ -111,8 +111,11 @@ class LessonActionAdmin(admin.ModelAdmin):
     def lesson_raw_entry(self, lessonaction):
         return lessonaction.lesson.raw_entry
 
+    def lesson_complete(self, lessonaction):
+        return lessonaction.lesson.complete()
+
     # Necessary since auto_now_add=True in the models
-    fields = ['date', 'lesson_id', 'lesson_subject', 'lesson_group',
+    fields = ['date', 'lesson_complete', 'lesson_subject', 'lesson_group',
               'lesson_subgroup', 'lesson_kind', 'lesson_room',
               'lesson_date_start', 'lesson_date_end', 'lesson_academic_year',
               'lesson_raw_entry']

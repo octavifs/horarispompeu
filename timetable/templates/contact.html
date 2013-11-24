@@ -3,20 +3,28 @@
 {% block content %}
 <form action="/problemes/" method="post">
 {% csrf_token %}
-{{ form.non_field_errors }}
+{% for error in form.non_field_errors %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endfor %}
 <div class="form-group">
-    {{ form.sender.errors }}
     <label for="id_sender">Email:</label>
+    {% for error in form.sender.errors %}
+    <div class="alert alert-danger" style="margin-bottom: 3px;">{{ error }}</div>
+    {% endfor %}
     <input type="email" class="form-control" id="id_sender" name="sender" placeholder="El meu email és...">
 </div>
 <div class="form-group">
-    {{ form.subject.errors }}
     <label for="id_subject">Problema:</label>
+    {% for error in form.subject.errors %}
+    <div class="alert alert-danger" style="margin-bottom: 3px;">{{ error }}</div>
+    {% endfor %}
     <input type="text" class="form-control" id="id_subject" name="subject" placeholder="Tinc problemes amb...">
 </div>
 <div class="form-group">
-    {{ form.message.errors }}
     <label for="id_message">Descripció:</label>
+    {% for error in form.message.errors %}
+    <div class="alert alert-danger" style="margin-bottom: 3px;">{{ error }}</div>
+    {% endfor %}
     <textarea id="id_message" name="message" class="form-control" rows="4"></textarea>
 </div>
 <div class="form-group">

@@ -78,7 +78,7 @@ class Lesson(object):
 # See tests for details on what is or isn't parsed.
 
 # Format (aprox): HH:mm - HH:mm
-regexp_date = re.compile(r'^(\d{2}).*(\d{2}).*(\d{2}).*(\d{2})')
+regexp_date = re.compile(r'^(\d{1,2}).*?(\d{1,2}).*?(\d{1,2}).*?(\d{1,2})')
 # Format (aprox): group: {room or rooms}
 regexp_room = re.compile(r'^\w+:\s*(.+)$')
 # Format (aprox): {Letter}{Number}: {room or rooms}

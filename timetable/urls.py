@@ -15,11 +15,13 @@
 from django.conf.urls import patterns, url
 from timetable import views
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^$', views.index, name='index'),
     url(r'^grau/$', views.degree, name='degree'),
     url(r'^curs/$', views.year, name='year'),
     url(r'^assignatures/$', views.subject, name='subject'),
     url(r'^calendari/$', views.calendar, name='calendar'),
     url(r'^subscriu/$', views.subscription, name='subscription'),
+    url(r'^pmf/$', views.pmf, name='pmf'),
 )

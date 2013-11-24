@@ -26,8 +26,20 @@
 
   <body>
   <div id="wrap">
-  {% block navbar %}
-  {% endblock %}
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">Horaris Pompeu, {{term}}</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right aux">
+      <li><a href="/pmf">PMF</a></li>
+      <li><a href="/problemes">Problemes?</a></li>
+    </ul>
+    {% block navbar %}
+    {% endblock %}
+  </div>
+</div>
 
     <div class="container">
       <div class="jumbotron">

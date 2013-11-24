@@ -13,38 +13,40 @@
 # limitations under the License.
 
 from __future__ import unicode_literals
-from django.shortcuts import render
-from django.template import Context, loader
-from django.db.models import Q
+
 import operator
 import hashlib
-from django.core.files.base import ContentFile
-import os
 import subprocess
 
+from django.shortcuts import render
+from django.db.models import Q
+from django.core.files.base import ContentFile
+
+from django.conf import settings
 from timetable.models import *
 import timetable.calendar
 
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'index.html', {'term': settings.TERM})
 
 
 def degree(request):
     faculty = Faculty.objects.get(pk='ESUP')
     degree_list = Degree.objects.filter(faculty=faculty)
-    context = {'degree_list': degree_list}
+    context = {'degree_list': degree_list, 'term': settings.TERM}
     return render(request, 'degree.html', context)
 
 
 def year(request):
     # First, deal with invalid inputs:
-    if (request.method == 'GET' or
+    if (
+        request.method == 'GET' or
         not request.POST.getlist('degree')
     ):
         # This will raise a 500 error page on production
-        return render(request, '500.html', {})
+        return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid (the list may still contain invalid degree ids), retrieve years and groups:
     degree_and_group_list = DegreeSubject.objects.filter(
         degree__in=request.POST.getlist('degree')
@@ -58,22 +60,23 @@ def year(request):
         'year',
         'group',
     ).distinct()
-    degree_list = dict()
+    degree_list = {}
     for entry in degree_and_group_list:
         degree_list.setdefault(entry['degree__name'], []).append(entry)
-    context = {'degree_list': degree_list}
+    context = {'degree_list': degree_list, 'term': settings.TERM}
     return render(request, 'year.html', context)
 
 
 def subject(request):
     # First, deal with invalid inputs:
-    if (request.method == 'GET' or
+    if (
+        request.method == 'GET' or
         not request.POST.getlist('degree_year')
     ):
         # This will raise a 500 error page on production
-        return render(request, '500.html', {})
+        return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.latest('pk')
+    academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
     degree_year = request.POST.getlist('degree_year')
     courses = []
     for entry in degree_year:
@@ -98,19 +101,23 @@ def subject(request):
     year_degree_subjects = {}
     for degree_subject in degree_subjects:
         year_degree_subjects.setdefault(degree_subject['year'], []).append(degree_subject)
-    context = {'year_degree_subjects': sorted(year_degree_subjects.iteritems())}
+    context = {
+        'year_degree_subjects': sorted(year_degree_subjects.iteritems()),
+        'term': settings.TERM
+    }
     return render(request, 'subject.html', context)
 
 
 def calendar(request):
     # First, deal with invalid inputs:
-    if (request.method == 'GET' or
+    if (
+        request.method == 'GET' or
         not request.POST.getlist('degree_subject')
     ):
         # This will raise a 500 error page on production
-        return render(request, '500.html', {})
+        return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.latest('pk')
+    academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
     # degree_subjects contains a list with strings with the format
     # {subject_id}_{group}
     raw_selected_subjects = request.POST.getlist('degree_subject')
@@ -145,23 +152,30 @@ def calendar(request):
     finally:
         context = {
             'calendar_url': calendar.file.url,
-            'calendar_name': calendar.name
+            'calendar_name': calendar.name,
+            'term': settings.TERM
         }
         return render(request, 'calendar.html', context)
 
 
 def subscription(request):
     # First, deal with invalid inputs:
-    if (request.method == 'GET' or
+    if (
+        request.method == 'GET' or
         not request.POST["email"] or
         not request.POST["password"] or
         not request.POST["calendar"]
     ):
         # This will render a 500 error page on production
-        return render(request, '500.html', {})
+        return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid render the view:
     email = "--email={}".format(request.POST["email"])
     password = "--password={}".format(request.POST["password"])
     calendar = "--calendar={}".format(request.POST["calendar"])
-    result = subprocess.call(["casperjs", "casperjs/addICSCal.js", email, password, calendar])
+    result = subprocess.call(
+        ["casperjs", "casperjs/addICSCal.js", email, password, calendar])
     return render(request, 'subscription_result.html', {'result': result})
+
+
+def pmf(request):
+    return render(request, 'pmf.html', {'term': settings.TERM})

@@ -140,6 +140,10 @@ body {
   background-color: #c8102e;
 }
 
+dd {
+  margin-bottom: 20px;
+}
+
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   /* Remove the padding we set earlier */
@@ -158,7 +162,7 @@ body {
     border-bottom: 0;
   }
 
-  .navbar-nav li {
+  .breadcrumbs.navbar-nav li {
     background-repeat: no-repeat;
     background-image: url('arrow.png');
     background-position: right;

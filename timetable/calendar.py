@@ -17,6 +17,8 @@
 from icalendar import Calendar, Event
 from datetime import datetime
 import pytz
+
+from django.conf import settings
 # Don't import from __future__ import unicode_literals
 # .add fails if the string has a special character [àáèéìí...]
 # The result does not return a unicode string, but a binary string.
@@ -34,7 +36,8 @@ def generate(lessons):
     cal.add('version', '2.0')
     # Give the calendar a name. I use this to remind the users where the
     # calendar comes from, in case they need a new one.
-    cal.add('x-wr-calname', 'horarispompeu.com')
+    cal.add('x-wr-calname', 'horarispompeu.com {} {}'.format(
+        settings.TERM, settings.ACADEMIC_YEAR))
     cal.add('x-wr-timezone', 'Europe/Madrid')
     for entry in lessons:
         event = Event()

@@ -44,14 +44,17 @@ def degree(request):
 def year(request):
     # First, deal with invalid inputs:
     if (
-        request.method == 'GET' or
+        not request.session.get('degree') and
         not request.POST.getlist('degree')
     ):
         # This will raise a 500 error page on production
         return render(request, '500.html', {'term': settings.TERM})
+    # Save POST parameters to cookie
+    if request.method == 'POST':
+        request.session['degree'] = request.POST.getlist('degree')
     # Once input is seemingly valid (the list may still contain invalid degree ids), retrieve years and groups:
     degree_and_group_list = DegreeSubject.objects.filter(
-        degree__in=request.POST.getlist('degree')
+        degree__in=request.session['degree']
     ).order_by(
         'degree',
         'year',
@@ -72,14 +75,17 @@ def year(request):
 def subject(request):
     # First, deal with invalid inputs:
     if (
-        request.method == 'GET' or
+        not request.session.get('degree_year') and
         not request.POST.getlist('degree_year')
     ):
         # This will raise a 500 error page on production
         return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid render the view:
     academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
-    degree_year = request.POST.getlist('degree_year')
+    # Save POST parameters to cookie
+    if request.method == 'POST':
+        request.session['degree_year'] = request.POST.getlist('degree_year')
+    degree_year = request.session['degree_year']
     courses = []
     for entry in degree_year:
         degree_id, course, group = entry.split('_')
@@ -113,16 +119,19 @@ def subject(request):
 def calendar(request):
     # First, deal with invalid inputs:
     if (
-        request.method == 'GET' or
+        not request.session.get('degree_subject') and
         not request.POST.getlist('degree_subject')
     ):
         # This will raise a 500 error page on production
         return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid render the view:
     academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
+    # Save POST parameters to cookie:
+    if request.method == 'POST':
+        request.session['degree_subject'] = request.POST.getlist('degree_subject')
     # degree_subjects contains a list with strings with the format
     # {subject_id}_{group}
-    raw_selected_subjects = request.POST.getlist('degree_subject')
+    raw_selected_subjects = request.session['degree_subject']
     raw_selected_subjects.sort()
     string_selected_subjects = "\n".join(raw_selected_subjects)
     # The calendar will have, for its filename, the SHA1 hash of the sorted

@@ -181,6 +181,9 @@ LOGGING = {
 #Set up email. Dummy config
 EMAIL_SUBJECT_PREFIX = '[HP] '
 
+# Expire session on browser close
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 #Import private settings
 from settings_private import *
 

@@ -46,6 +46,5 @@ def generate(lessons):
         event.add('dtstart', tz.localize(entry.date_start))
         event.add('dtend', tz.localize(entry.date_end))
         event.add('dtstamp', datetime.now(tz))
-        event.add('location', entry.room)
         cal.add_component(event)
     return cal.to_ical()

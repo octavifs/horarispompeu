@@ -1,18 +1,20 @@
 server {
     listen 80;
     server_name horarispompeu.com;
-    return 301 $scheme://www.horarispompeu.com$request_uri;
+    return 301 https://www.horarispompeu.com$request_uri;
 }
 
 server {
-    listen 80;
+    listen 443 default_server ssl;
+    ssl_certificate /etc/nginx/ssl/horarispompeu.com.unified.crt;
+    ssl_certificate_key /etc/nginx/ssl/horarispompeu.com.key;
     server_name www.horarispompeu.com;
     access_log  /var/log/nginx/horarispompeu.log;
     gzip on;
     gzip_min_length 1000;
     gzip_buffers 16 8k;
     gzip_comp_level 4;
-    gzip_types text/plain text/html text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript image/x-icon image/bmp;
+    gzip_types text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript image/x-icon image/bmp;
     gzip_vary on;
 
     location / {

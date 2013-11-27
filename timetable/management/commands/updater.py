@@ -2,6 +2,8 @@
 
 from subprocess import Popen, PIPE
 from datetime import datetime
+from shutil import copyfile
+import time
 
 from django.core.management.base import NoArgsCommand
 from django.core.mail import send_mail
@@ -17,7 +19,10 @@ class Command(NoArgsCommand):
     )
 
     def handle_noargs(self, **options):
+        start = time.time()
         message = "Starting update...\n"
+        # First backup the DB
+        copyfile('./resources/horaris.sqlite', './resources/backups/horaris.sqlite.{}'.format(datetime.now()))
         subject_parser = Popen(["./manage.py", "subjectparser"], stdout=PIPE, stderr=PIPE)
         output, error = subject_parser.communicate()
         if output:
@@ -25,6 +30,8 @@ class Command(NoArgsCommand):
         if error:
             message += error
         if subject_parser.returncode:  # If return code != 0, something wrong
+            end = time.time()
+            message += "Time employed: {} seconds\n".format(end - start)
             send_mail(
                 "[HP] [UPDATE] [KO] {}".format(datetime.now()),
                 message,
@@ -41,6 +48,8 @@ class Command(NoArgsCommand):
         if error:
             message += error
         if lesson_parser.returncode:  # If return code != 0, something wrong
+            end = time.time()
+            message += "Time employed: {} seconds\n".format(end - start)
             send_mail(
                 "[HP] [UPDATE] [KO] {}".format(datetime.now()),
                 message,
@@ -57,6 +66,8 @@ class Command(NoArgsCommand):
         if error:
             message += error
         if calendar_updater.returncode:  # If return code != 0, something wrong
+            end = time.time()
+            message += "Time employed: {} seconds\n".format(end - start)
             send_mail(
                 "[HP] [UPDATE] [KO] {}".format(datetime.now()),
                 message,
@@ -67,6 +78,8 @@ class Command(NoArgsCommand):
             self.stderr.write("DONE. calendarupdater KO")
             return
         # If everything has gone OK
+        end = time.time()
+        message += "Time employed: {} seconds\n".format(end - start)
         send_mail(
             "[HP] [UPDATE] [OK] {}".format(datetime.now()),
             message,

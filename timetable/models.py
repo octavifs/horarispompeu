@@ -16,10 +16,6 @@
 
 from __future__ import unicode_literals
 from django.db import models
-from django.db.models.signals import post_delete
-from django.db.models.signals import post_save
-from django.dispatch.dispatcher import receiver
-from django.db import IntegrityError
 
 
 class Faculty(models.Model):
@@ -114,54 +110,38 @@ GROUP_CHOICES = (
 )
 
 
-class LessonCommon(models.Model):
+class Lesson(models.Model):
     """
-    Base Model for lesson. A lesson is a class, from an specific subject, taking
+    Lesson is a class, from an specific subject, taking
     place on a specific day, for some group.
-    This base model is used for the 2 derived Lesson Models:
-        - Lesson
-        - LessonArchive
     """
     subject = models.ForeignKey(Subject, null=True, blank=True)
     group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
-    subgroup = models.CharField(max_length=50, blank=True)
-    kind = models.CharField(max_length=50, blank=True)
-    room = models.CharField(max_length=50, blank=True)
     date_start = models.DateTimeField('lesson start', null=True, blank=True)
     date_end = models.DateTimeField('lesson end', null=True, blank=True)
     academic_year = models.ForeignKey(AcademicYear)
+    entry = models.TextField(blank=True)
     raw_entry = models.TextField()
+    creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        abstract = True
         ordering = ("-academic_year", "date_start", "subject", "group")
+        unique_together = ("subject", "group", "entry", "date_start",
+                           "date_end", "academic_year")
 
     def __unicode__(self):
         rep = [
             "<Lesson object>"
             "subject: " + repr(self.subject.name if self.subject else None),
-            "kind: " + repr(self.kind),
-            "group: " + repr(self.group),
-            "room: " + repr(self.room),
+            "entry: " + repr(self.entry),
             "date_start: " + repr(self.date_start),
             "date_end: " + repr(self.date_end),
         ]
         return '\n'.join(rep)
 
     def complete(self):
-        return bool(self.subject and self.group and self.kind and self.room)
+        return bool(self.subject and self.entry)
     complete.boolean = True
-
-
-class Lesson(LessonCommon):
-    """
-    Every active and valid lesson is a lesson model.
-    """
-    class Meta:
-        verbose_name_plural = 'Lessons'
-        # Don't allow duplicate entries
-        unique_together = ("subject", "group", "subgroup", "kind", "room",
-                           "date_start", "date_end", "academic_year")
 
 
 class DegreeSubject(models.Model):
@@ -217,95 +197,3 @@ class Calendar(models.Model):
     name = models.CharField(max_length=128, primary_key=True, blank=False)
     file = models.FileField(upload_to='.')
     degree_subjects = models.ManyToManyField(DegreeSubject)
-
-
-#
-# Models and signals necessary to handle the archiving of added and deleted
-# Lessons
-#
-class LessonArchive(LessonCommon):
-    """
-    Every deleted lesson is saved as a LessonArchive. This is done to prevent
-    destruction of actual data. This way, if an update goes wrong and deletes
-    lessons for the wrong reasons, you can still salvage the old data and
-    restore it.
-    """
-    class Meta:
-        verbose_name_plural = 'Lessons Archives'
-
-
-class LessonInsert(models.Model):
-    """
-    Save a record of which Lessons have been inserted in the DB and when did
-    that happen. This model is linked with the signal _lesson_insert
-    """
-    # Delete entry if Lesson is removed
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ("-date",)
-
-
-class LessonDelete(models.Model):
-    """
-    Save a record of which Lessons have been deleted in the DB and when did
-    that happen. This model is linked with the signal _lesson_delete
-    """
-    lesson = models.ForeignKey(LessonArchive, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ("-date",)
-
-
-@receiver(post_save, sender=Lesson)
-def _lesson_insert(sender, instance, **kwargs):
-    """
-    When a lesson is saved to the database, register that event in the
-    LessonInsert table.
-    """
-    try:
-        inserted_record = LessonInsert(lesson=instance)
-        inserted_record.save()
-    except IntegrityError, e:
-        print(e)
-
-
-@receiver(post_delete, sender=Lesson)
-def _lesson_delete(sender, instance, **kwargs):
-    """
-    When a lesson is deleted from the Lessons table, register that event and
-    store the deleted instance in the LessonArchive table.
-    """
-    try:
-        fields = {
-            'subject': instance.subject,
-            'group': instance.group,
-            'subgroup': instance.subgroup,
-            'kind': instance.kind,
-            'room': instance.room,
-            'date_start': instance.date_start,
-            'date_end': instance.date_end,
-            'academic_year': instance.academic_year,
-            'raw_entry': instance.raw_entry
-        }
-        archived_lesson = LessonArchive(**fields)
-        archived_lesson.save()
-        deleted_record = LessonDelete(lesson=archived_lesson)
-        deleted_record.save()
-    except IntegrityError, e:
-        print(e)
-
-
-@receiver(post_delete, sender=LessonDelete)
-def _lessondelete_delete(sender, instance, **kwargs):
-    """
-    When deleting a LessonDelete record, delete the related LessonArchive.
-    """
-    try:
-        instance.lesson.delete()
-    except IntegrityError, e:
-        print(e)
-    except LessonArchive.DoesNotExist:
-        pass

@@ -41,7 +41,7 @@ def generate(lessons):
     cal.add('x-wr-timezone', 'Europe/Madrid')
     for entry in lessons:
         event = Event()
-        summary = " ".join([entry.kind, entry.subgroup, entry.subject.name])
+        summary = "\n".join([entry.subject.name, entry.entry])
         event.add('summary', summary)
         event.add('dtstart', tz.localize(entry.date_start))
         event.add('dtend', tz.localize(entry.date_end))

@@ -18,9 +18,7 @@ def insert_lessons(lessons, group, academic_year):
         l, created = Lesson.objects.get_or_create(
             subject=alias.subject,
             group=group,
-            subgroup=lesson.group if lesson.group else "",
-            kind=lesson.kind if lesson.kind else "",
-            room=lesson.room if lesson.room else "",
+            entry=lesson.data if lesson.data else "",
             date_start=lesson.date_start,
             date_end=lesson.date_end,
             academic_year=academic_year,
@@ -56,12 +54,6 @@ def delete_lessons(lessons, group, academic_year):
             match = match.filter(subject=alias.subject)
         if group:
             match = match.filter(group=group)
-        if lesson.group:
-            match = match.filter(subgroup=lesson.group)
-        if lesson.kind:
-            match = match.filter(kind=lesson.kind)
-        if lesson.room:
-            match = match.filter(room=lesson.room)
         if lesson.date_start:
             # We are only interested in filtering by date, not hour. This is
             # because the parser may not parse the time correctly.
@@ -78,6 +70,8 @@ def delete_lessons(lessons, group, academic_year):
             )
         if academic_year:
             match = match.filter(academic_year=academic_year)
+        if lesson.data:
+            match = match.filter(entry=lesson.data)
         if lesson.raw_data:
             match = match.filter(raw_entry=lesson.raw_data)
         # Add match filter to the macrofilter

@@ -26,22 +26,18 @@ import itertools
 class Lesson(object):
     def __init__(self,
                  subject=None,
-                 kind=None,
-                 group=None,
-                 room=None,
+                 data=None,
                  date_start=None,
                  date_end=None,
                  raw_data=None):
         self.subject = subject
-        self.kind = kind
-        self.group = group
-        self.room = room
+        self.data = data
         self.date_start = date_start
         self.date_end = date_end
         self.raw_data = raw_data
 
     def __key(self):
-        return (self.subject, self.kind, self.group, self.room, self.date_start, self.date_end)
+        return (self.subject, self.data, self.date_start, self.date_end)
 
     def __hash__(self):
         # As suggested in: http://stackoverflow.com/a/2909119
@@ -58,9 +54,7 @@ class Lesson(object):
     def __str__(self):
         rep = "<Lesson object>\n"
         rep += "subject: " + repr(self.subject) + "\n"
-        rep += "kind: " + repr(self.kind) + "\n"
-        rep += "group: " + repr(self.group) + "\n"
-        rep += "room: " + repr(self.room) + "\n"
+        rep += "data: " + repr(self.data) + "\n"
         rep += "date_start: " + repr(self.date_start) + "\n"
         rep += "date_end: " + repr(self.date_end) + "\n"
         rep += "raw_data: " + repr(self.raw_data)
@@ -137,23 +131,37 @@ def parselesson(text, h_init, h_end, day):
         c = Lesson(
             raw_data=raw_data,
             subject=lines[0],
-            kind=lines[1],
             date_start=datetime.combine(day, h_init),
             date_end=datetime.combine(day, h_end)
         )
-        for l in lines[2:]:
+        common_data = []
+        it = iter(lines[1:])
+        for l in it:
+            if regexp_date.match(l):
+                parsed_date = parsehours(l)
+                c.date_start = datetime.combine(day, parsed_date[0])
+                c.date_end = datetime.combine(day, parsed_date[1])
+                break
+            else:
+                common_data.append(l)
+        specific_data = []
+        for l in it:
             # Update hour if necessary
             if regexp_date.match(l):
+                # First, add buffered lesson
+                c.data = "\n".join(common_data + specific_data)
+                yield c.copy()
+                # Then, reset specific data and change hours
+                specific_data = []
                 parsed_date = parsehours(l)
                 c.date_start = datetime.combine(day, parsed_date[0])
                 c.date_end = datetime.combine(day, parsed_date[1])
             # Yield a lesson for each group
             else:
-                match_room = regexp_room.match(l)
-                match_group = regexp_group.match(l)
-                c.room = match_room.groups()[0] if match_room else None
-                c.group = match_group.groups()[0] if match_group else None
-                yield c.copy()
+                specific_data.append(l)
+        # Yield last buffered sesson
+        c.data = "\n".join(common_data + specific_data)
+        yield c.copy()
 
 
 def parse(html):

@@ -52,10 +52,10 @@ class LessonAdmin(admin.ModelAdmin):
         return lesson.subject.faculty
 
     search_fields = ['id', 'subject__name']
-    list_display = ['subject_name', 'subject_faculty', 'kind', 'group',
-                    'subgroup', 'room', 'date_start', 'date_end', 'complete']
+    list_display = ['subject_name', 'subject_faculty', 'entry',
+                    'date_start', 'date_end', 'creation', 'complete']
     date_hierarchy = 'date_start'
-    list_filter = ['date_start', 'kind', 'group', 'subgroup', 'room']
+    list_filter = ['date_start', 'subject__name', 'creation']
     save_as = True
 
 
@@ -74,49 +74,6 @@ class CalendarAdmin(admin.ModelAdmin):
     list_display = ['name', 'file', 'degree_subjects_list']
 
 
-class LessonActionAdmin(admin.ModelAdmin):
-    def lesson_id(self, lessonaction):
-        return lessonaction.lesson.id
-
-    def lesson_subject(self, lessonaction):
-        return lessonaction.lesson.subject.name
-
-    def lesson_group(self, lessonaction):
-        return lessonaction.lesson.group
-
-    def lesson_subgroup(self, lessonaction):
-        return lessonaction.lesson.subgroup
-
-    def lesson_kind(self, lessonaction):
-        return lessonaction.lesson.kind
-
-    def lesson_room(self, lessonaction):
-        return lessonaction.lesson.room
-
-    def lesson_date_start(self, lessonaction):
-        return lessonaction.lesson.date_start
-
-    def lesson_date_end(self, lessonaction):
-        return lessonaction.lesson.date_end
-
-    def lesson_academic_year(self, lessonaction):
-        return lessonaction.lesson.academic_year
-
-    def lesson_raw_entry(self, lessonaction):
-        return lessonaction.lesson.raw_entry
-
-    def lesson_complete(self, lessonaction):
-        return lessonaction.lesson.complete()
-
-    # Necessary since auto_now_add=True in the models
-    fields = ['date', 'lesson_complete', 'lesson_subject', 'lesson_group',
-              'lesson_subgroup', 'lesson_kind', 'lesson_room',
-              'lesson_date_start', 'lesson_date_end', 'lesson_academic_year',
-              'lesson_raw_entry']
-    readonly_fields = fields
-    list_display = fields
-
-
 admin.site.register(Faculty)
 admin.site.register(Degree)
 admin.site.register(Subject, SubjectAdmin)
@@ -125,6 +82,3 @@ admin.site.register(AcademicYear)
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(DegreeSubject, DegreeSubjectAdmin)
 admin.site.register(Calendar, CalendarAdmin)
-admin.site.register(LessonInsert, LessonActionAdmin)
-admin.site.register(LessonDelete, LessonActionAdmin)
-admin.site.register(LessonArchive, LessonAdmin)

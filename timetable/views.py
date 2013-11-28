@@ -180,11 +180,11 @@ def subscription(request):
         # This will render a 500 error page on production
         return render(request, '500.html', {'term': settings.TERM})
     # Once input is seemingly valid render the view:
-    email = "--email={}".format(request.POST["email"])
-    password = "--password={}".format(request.POST["password"])
-    calendar = "--calendar={}".format(request.POST["calendar"])
+    email = request.POST["email"]
+    password = request.POST["password"]
+    calendar = request.POST["calendar"]
     result = subprocess.call(
-        ["casperjs", settings.AUTO_SUBSCRIPTION_SCRIPT, email, password, calendar])
+        [settings.PHANTOMJS_BIN, settings.AUTO_SUBSCRIPTION_SCRIPT, email, password, calendar])
     return render(request, 'subscription_result.html', {'result': result})
 
 

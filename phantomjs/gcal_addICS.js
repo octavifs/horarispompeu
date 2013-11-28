@@ -17,7 +17,10 @@ if (system.args.length < 4) {
 var email = system.args[1];
 var passwd = system.args[2];
 var calendar = system.args[3];
+var DEBUG = Boolean(system.args[4]) || false;
 
+page.viewportSize = { width: 800, height: 800 };
+page.settings.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.11 Safari/535.19';
 page.open('http://calendar.google.com/', function() {
   page.includeJs('//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js', function() {
     page.evaluate(function(email, passwd) {
@@ -34,9 +37,13 @@ page.open('http://calendar.google.com/', function() {
   }, TIMEOUT);
 
   page.onLoadFinished = function(status) {
+    if (DEBUG) {
+      console.log('\n' + page.url + '\n');
+      page.render('page.png');
+    }
     // See whether the user has logged in or not
     if(/accounts\.google\.com\/ServiceLogin/.test(page.url)) {
-      // page.render('login.png');
+      if (DEBUG) page.render('login.png');
       if (page.evaluate(function(email, passwd) {
         return Boolean(document.querySelector("#errormsg_0_Passwd"));
       })) {
@@ -51,7 +58,7 @@ page.open('http://calendar.google.com/', function() {
           secid = page.cookies[i].value;
         }
       }
-      console.log('\n' + secid + '\n');
+      if (DEBUG) console.log('\n' + secid + '\n');
       var postBody = {
         curl: calendar,
         cimp: true,
@@ -69,7 +76,7 @@ page.open('http://calendar.google.com/', function() {
           }).status;
           return (status == 200)
         }, postBody);
-        // page.render('calendar.png');
+        if (DEBUG) page.render('calendar.png');
         if (result) {
           phantom.exit(0);
         } else {

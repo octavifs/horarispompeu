@@ -184,7 +184,7 @@ def subscription(request):
     password = "--password={}".format(request.POST["password"])
     calendar = "--calendar={}".format(request.POST["calendar"])
     result = subprocess.call(
-        ["casperjs", "casperjs/addICSCal.js", email, password, calendar])
+        ["casperjs", settings.AUTO_SUBSCRIPTION_SCRIPT, email, password, calendar])
     return render(request, 'subscription_result.html', {'result': result})
 
 

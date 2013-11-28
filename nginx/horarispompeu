@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name horarispompeu.com;
+    server_name horarispompeu.com www.horarispompeu.com;
     return 301 https://www.horarispompeu.com$request_uri;
 }
 

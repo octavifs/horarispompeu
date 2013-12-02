@@ -24,6 +24,7 @@
 </ul>
 <div class="tab-content">
   <div class="tab-pane active" id="automatic_subscription">
+    <p>Per afegir el teu calendari automàticament a Google Calendar necessitem el compte al qual vols afegir l'horari i la seva contrassenya. La transmissió de dades és segura i no guardem la contrassenya, però si ho prefereixes, sempre pots completar el procés manualment.</p>
     <div class="row">
       <div class="col-md-6" id="subscription_alert"></div>
     </div>
@@ -39,7 +40,7 @@
         <input type="password" class="form-control" id="password_input" name="password" placeholder="Contrassenya">
       </div>
       <input type="hidden" name="calendar" value="{{ calendar_url }}">
-      <button type="button" class="btn btn-danger" id="submit_button" data-loading-text="Subscripció en curs. Espera uns segons... <span class='glyphicon glyphicon-send'></span>">Subscriu <span class="glyphicon glyphicon-pencil"></span></button>
+      <button type="button" class="btn btn-danger" id="submit_button" data-loading-text="Subscripció en curs. Espera uns 20 segons... <span class='glyphicon glyphicon-send'></span>">Subscriu <span class="glyphicon glyphicon-pencil"></span></button>
     </form>
     </div>
   </div>
@@ -58,6 +59,8 @@
 </ul>
 <div class="tab-content">
   <div class="tab-pane active" id="android_sync">
+    <p>Per sincronitzar el calendari amb el teu dispositiu android en primer lloc assegura't que aquest té registrat el compte al qual has afegit l'horari.</p>
+    <p>Per afegir un compte ves a <em>Preferencias > Cuentas > Añadir cuenta</em>.</p>
     <div class="video-container">
       <iframe width="640" height="480" src="//www.youtube.com/embed/QG5QNnQ5Tfg" frameborder="0" allowfullscreen></iframe>
     </div>

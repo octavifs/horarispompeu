@@ -145,7 +145,7 @@ dd {
 }
 
 /* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 992px) {
   /* Remove the padding we set earlier */
   .header,
   .marketing,

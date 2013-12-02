@@ -36,3 +36,4 @@ nosetests.xml
 horarispompeu.sublime-workspace
 horarispompeu.sublime-project
 .idea
+settings_private.py

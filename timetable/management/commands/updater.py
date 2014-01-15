@@ -59,7 +59,7 @@ class Command(NoArgsCommand):
             )
             self.stderr.write("DONE. lessonparser KO")
             return
-        calendar_updater = Popen(["./manage.py", "lessonparser"], stdout=PIPE, stderr=PIPE)
+        calendar_updater = Popen(["./manage.py", "calendarupdater"], stdout=PIPE, stderr=PIPE)
         output, error = calendar_updater.communicate()
         if output:
             message += output

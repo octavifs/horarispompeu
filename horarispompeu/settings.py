@@ -2,7 +2,7 @@
 
 DEBUG = True
 # Sets up which calendars should be parsed
-TERM = "1r Trimestre"
+TERM = "2n Trimestre"
 ACADEMIC_YEAR = "2013-14"
 
 TEMPLATE_DEBUG = DEBUG
@@ -32,7 +32,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "horarispompeu.com",
-    "www.horarispompeu.com"
+    "www.horarispompeu.com",
+    "193.145.51.3",
 ]
 
 # Local time zone for this installation. Choices can be found here:

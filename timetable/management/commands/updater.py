@@ -2,7 +2,7 @@
 
 from subprocess import Popen, PIPE
 from datetime import datetime
-from shutil import copyfile
+from shutil import copyfile, copytree
 import time
 
 from django.core.management.base import NoArgsCommand
@@ -21,8 +21,10 @@ class Command(NoArgsCommand):
     def handle_noargs(self, **options):
         start = time.time()
         message = "Starting update...\n"
-        # First backup the DB
+        # First backup the DB & the html sources for the timetables
         copyfile('./resources/horaris.sqlite', './resources/backups/horaris.sqlite.{}'.format(datetime.now()))
+        copytree('./resources/timetable', './resources/backups/timetable {}'.format(datetime.now()))
+        # Parse subjects in search for new aliases
         subject_parser = Popen(["./manage.py", "subjectparser"], stdout=PIPE, stderr=PIPE)
         output, error = subject_parser.communicate()
         if output:

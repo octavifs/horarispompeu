@@ -17,6 +17,7 @@
 from __future__ import unicode_literals
 import os
 import json
+import sys
 
 import requests
 from django.core.management.base import NoArgsCommand
@@ -91,7 +92,7 @@ class Command(NoArgsCommand):
                 self.stderr.write(
                     "ERROR: some SubjectAliases are empty. Fill them "
                     "using the admin interface before proceeding")
-                return
+                sys.exit(1)
             # Iterate over the json again, and now add DegreeSubjects
             for entry in degree_years:
                 # Don't process timetables that don't belong to the current year

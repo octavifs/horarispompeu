@@ -1,7 +1,7 @@
 {% load staticfiles %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-image: url('{{background_img}}')">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,6 +67,7 @@
   <div id="footer">
       <div class="container">
         <p class="text-muted credit"><strong>HorarisPompeu</strong>, actualitzat amb els últims horaris del <strong>{{term}}, curs 2013/14</strong>. Visita'ns al <a href="https://github.com/octavifs/horarispompeu">GitHub</a>!</p>
+        <p class="text-muted credit"><strong>Foto:</strong> {{background_caption}}</p>
       </div>
   </div>
 

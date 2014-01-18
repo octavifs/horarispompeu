@@ -1,3 +1,4 @@
+# encoding: utf-8
 # Django settings for horarispompeu project.
 
 DEBUG = True
@@ -185,6 +186,13 @@ EMAIL_SUBJECT_PREFIX = '[HP] '
 # Expire session on browser close
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# Random backgrounds
+from os.path import join
+BACKGROUND_IMAGES_PREFIX = join(STATIC_URL, "images")
+BACKGROUND_IMAGES = [
+    ("IMG_20140103_112135.jpg", "la Xemeneia. Ulldeter (Ripollès)."),
+    ("IMG_20140103_134025.jpg", "Coma del Freser, des de Bastiments. Ulldeter (Ripollès).")
+]
+
 #Import private settings
 from settings_private import *
-

@@ -13,24 +13,28 @@ body {
   height: auto !important;
   height: 100%;
   /* Negative indent footer by its height */
-  margin: 0 auto -60px;
+  margin: 0 auto -80px;
   /* Pad bottom by footer height */
-  padding: 0 0 60px;
+  padding: 0 0 80px;
 }
 
 /* Set the fixed height of the footer here */
 #footer {
-  height: 60px;
+  height: 80px;
   padding-top: 20px;
   background-color: #222222;
   border-color: #080808;
+}
+#footer p {
+  margin: 0;
+  padding: 0;
 }
 
 /* Space out content a bit */
 html {
   background-color: #f0f0f0;
   /*See http://css-tricks.com/perfect-full-page-background-image/*/
-  background: url(bg5.jpg) no-repeat center center fixed;
+  background: no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;

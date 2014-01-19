@@ -191,7 +191,9 @@ from os.path import join
 BACKGROUND_IMAGES_PREFIX = join(STATIC_URL, "images")
 BACKGROUND_IMAGES = [
     ("IMG_20140103_112135.jpg", "la Xemeneia. Ulldeter (Ripollès)."),
-    ("IMG_20140103_134025.jpg", "Coma del Freser, des de Bastiments. Ulldeter (Ripollès).")
+    ("IMG_20140103_111114.jpg", "la Xemeneia. Ulldeter (Ripollès)."),
+    ("IMG_20140103_134025.jpg", "Coma del Freser, des de Bastiments. Ulldeter (Ripollès)."),
+    ("IMG_20131231_122653.jpg", "Pedraforca i Comabona, des del refugi del Rebost. Serra del Cadí (Berguedà)."),
 ]
 
 #Import private settings

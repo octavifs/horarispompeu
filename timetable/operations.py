@@ -23,6 +23,7 @@ def insert_lessons(lessons, group, academic_year):
             date_end=lesson.date_end,
             academic_year=academic_year,
             raw_entry=lesson.raw_data if lesson.raw_data else "",
+            uuid=hash((lesson, group, academic_year)),
         )
         new_lessons = new_lessons or created
     return new_lessons
@@ -36,51 +37,15 @@ def delete_lessons(lessons, group, academic_year):
     Returns True if any of the deletions hits the DB. False otherwise.
     """
     deleted_lessons = False
-    # We start with no matches
-    matches = Lesson.objects.none()
     for lesson in lessons:
+        # Since multiple timetables may be referring to the same lessons, put
+        # the get inside a try catch, since it may have been deleted already
         try:
-            alias = SubjectAlias.objects.get(name=lesson.subject)
-        except SubjectAlias.DoesNotExist:
-            alias = None
-        # Start with an unfiltered QuerySet, and progressively add them
-        match = Lesson.objects.all()
-        # Add as many filters as possible, given that the field is available
-        # The style is a bit cumbersome, but if we didn't perform the check
-        # and add filters such as subject=None, the QuerySet would try to match
-        # entries with Null fields, instead of ignoring the filtering on that
-        # specific field.
-        if alias and alias.subject:
-            match = match.filter(subject=alias.subject)
-        if group:
-            match = match.filter(group=group)
-        if lesson.date_start:
-            # We are only interested in filtering by date, not hour. This is
-            # because the parser may not parse the time correctly.
-            match = match.filter(
-                date_start__day=lesson.date_start.day,
-                date_start__month=lesson.date_start.month,
-                date_start__year=lesson.date_start.year,
-            )
-        if lesson.date_end:
-            match = match.filter(
-                date_end__day=lesson.date_end.day,
-                date_end__month=lesson.date_end.month,
-                date_end__year=lesson.date_end.year,
-            )
-        if academic_year:
-            match = match.filter(academic_year=academic_year)
-        if lesson.data:
-            match = match.filter(entry=lesson.data)
-        if lesson.raw_data:
-            match = match.filter(raw_entry=lesson.raw_data)
-        # Add match filter to the macrofilter
-        matches = matches | match
-    # We don't want repeated entries
-    matches = matches.distinct()
-    for m in matches:
-        m.delete()
-    deleted_lessons = matches.exists()
+            match = Lesson.objects.get(uuid=hash((lesson, group, academic_year)))
+            match.delete()
+            delete_lessons = True
+        except Lesson.DoesNotExist:
+            pass
     return deleted_lessons
 
 

@@ -123,6 +123,10 @@ class Lesson(models.Model):
     entry = models.TextField(blank=True)
     raw_entry = models.TextField()
     creation = models.DateTimeField(auto_now_add=True)
+    # Each lesson has a unique id, based on
+    #   hash((lesson (by timetable.parser), group, academic_year))
+    # This makes them very easy to delete
+    uuid = models.BigIntegerField(editable=False)
 
     class Meta:
         ordering = ("-academic_year", "date_start", "subject", "group")

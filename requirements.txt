@@ -1,6 +1,7 @@
 Django==1.6
 argparse==1.2.1
 beautifulsoup4==4.3.2
+boto==2.23.0
 django-extensions==1.2.5
 gunicorn==18.0
 icalendar==3.5

@@ -220,7 +220,7 @@ BACKGROUND_IMAGES = [
 # S3_BUCKET = 'somebucket'
 
 # Supervisord and Nginx config paths
-# SUPERVISORD_CONFIG = '/etc/supervisord/conf.d/someconf.conf'
+# SUPERVISORD_CONFIG = '/etc/supervisor/conf.d/someconf.conf'
 # NGINX_CONFIG = '/etc/nginx/sites-enabled/someconf'
 # Import private settings
 from settings_private import *

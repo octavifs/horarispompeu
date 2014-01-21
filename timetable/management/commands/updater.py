@@ -4,6 +4,10 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 from shutil import copyfile, copytree
 import time
+import traceback
+
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
 
 from django.core.management.base import NoArgsCommand
 from django.core.mail import send_mail
@@ -20,10 +24,42 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         start = time.time()
+        now = datetime.now()
         message = "Starting update...\n"
         # First backup the DB & the html sources for the timetables
-        copyfile('./resources/horaris.sqlite', './resources/backups/horaris.sqlite.{}'.format(datetime.now()))
-        copytree('./resources/timetable', './resources/backups/timetable {}'.format(datetime.now()))
+        copyfile('./resources/horaris.sqlite', './resources/backups/horaris.sqlite.{}'.format(now))
+        copytree('./resources/timetable', './resources/backups/timetable {}'.format(now))
+        # Also backup the DB and private config to Amazon S3 (if settings say so)
+        if settings.S3_BACKUP:
+            try:
+                conn = S3Connection(settings.AWS_ACCESS_KEY, settings.AWS_SECRET_KEY)
+                bucket = conn.get_bucket(settings.S3_BUCKET)
+                database = Key(bucket)
+                database.key = '/{}/horaris.sqlite'.format(now)
+                database.set_contents_from_filename('./resources/horaris.sqlite')
+                private_settings = Key(bucket)
+                private_settings.key = '/{}/settings_private.py'.format(now)
+                private_settings.set_contents_from_filename('./horarispompeu/settings_private.py')
+                supervisord_config = Key(bucket)
+                supervisord_config.key = '/{}/supervisord_horarispompeu.conf'.format(now)
+                supervisord_config.set_contents_from_filename(settings.SUPERVISORD_CONFIG)
+                nginx_config = Key(bucket)
+                nginx_config.key = '/{}/nginx_horarispompeu'.format(now)
+                nginx_config.set_contents_from_filename(settings.NGINX_CONFIG)
+            except:
+                # If something goes wrong, email traceback
+                end = time.time()
+                message += traceback.format_exc()
+                message += "Time employed: {} seconds\n".format(end - start)
+                send_mail(
+                    "[HP] [UPDATE] [KO] {}".format(now),
+                    message,
+                    "horarispompeu@gmail.com",
+                    [admin[1] for admin in settings.ADMINS],
+                    True
+                )
+                self.stderr.write("DONE. backup KO")
+                return
         # Parse subjects in search for new aliases
         subject_parser = Popen(["./manage.py", "subjectparser"], stdout=PIPE, stderr=PIPE)
         output, error = subject_parser.communicate()
@@ -35,7 +71,7 @@ class Command(NoArgsCommand):
             end = time.time()
             message += "Time employed: {} seconds\n".format(end - start)
             send_mail(
-                "[HP] [UPDATE] [KO] {}".format(datetime.now()),
+                "[HP] [UPDATE] [KO] {}".format(now),
                 message,
                 "horarispompeu@gmail.com",
                 [admin[1] for admin in settings.ADMINS],
@@ -53,7 +89,7 @@ class Command(NoArgsCommand):
             end = time.time()
             message += "Time employed: {} seconds\n".format(end - start)
             send_mail(
-                "[HP] [UPDATE] [KO] {}".format(datetime.now()),
+                "[HP] [UPDATE] [KO] {}".format(now),
                 message,
                 "horarispompeu@gmail.com",
                 [admin[1] for admin in settings.ADMINS],
@@ -71,7 +107,7 @@ class Command(NoArgsCommand):
             end = time.time()
             message += "Time employed: {} seconds\n".format(end - start)
             send_mail(
-                "[HP] [UPDATE] [KO] {}".format(datetime.now()),
+                "[HP] [UPDATE] [KO] {}".format(now),
                 message,
                 "horarispompeu@gmail.com",
                 [admin[1] for admin in settings.ADMINS],
@@ -83,7 +119,7 @@ class Command(NoArgsCommand):
         end = time.time()
         message += "Time employed: {} seconds\n".format(end - start)
         send_mail(
-            "[HP] [UPDATE] [OK] {}".format(datetime.now()),
+            "[HP] [UPDATE] [OK] {}".format(now),
             message,
             "horarispompeu@gmail.com",
             [admin[1] for admin in settings.ADMINS],

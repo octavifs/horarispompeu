@@ -180,7 +180,7 @@ LOGGING = {
     }
 }
 
-#Set up email. Dummy config
+# Set up email subject prefix.
 EMAIL_SUBJECT_PREFIX = '[HP] '
 
 # Expire session on browser close
@@ -196,5 +196,31 @@ BACKGROUND_IMAGES = [
     ("IMG_20131231_122653.jpg", "Pedraforca i Comabona, des del refugi del Rebost. Serra del Cadí (Berguedà)."),
 ]
 
-#Import private settings
+###################################
+# VARS TO ADD AS PRIVATE SETTINGS #
+###################################
+
+# Email
+# EMAIL_USE_TLS = True | False
+# EMAIL_PORT = 587
+# EMAIL_HOST = 'smtp.hostname.com'
+# EMAIL_HOST_USER = 'user@hostname.com'
+# EMAIL_HOST_PASSWORD = 'secretPassword'
+# DEFAULT_FROM_EMAIL = 'user@hostname.com'
+# SERVER_EMAIL = 'user@hostname.com'
+
+# PhantomJS
+# AUTO_SUBSCRIPTION_SCRIPT = "/path/to/gcal_addICS.js"
+# PHANTOMJS_BIN = "/path/to/bin/phantomjs"
+
+# S3 Backups
+# S3_BACKUP = True | False
+# AWS_ACCESS_KEY = 'some string'
+# AWS_SECRET_KEY = 'some string'
+# S3_BUCKET = 'somebucket'
+
+# Supervisord and Nginx config paths
+# SUPERVISORD_CONFIG = '/etc/supervisord/conf.d/someconf.conf'
+# NGINX_CONFIG = '/etc/nginx/sites-enabled/someconf'
+# Import private settings
 from settings_private import *

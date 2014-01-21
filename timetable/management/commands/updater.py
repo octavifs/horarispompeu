@@ -37,15 +37,19 @@ class Command(NoArgsCommand):
                 database = Key(bucket)
                 database.key = '/{}/horaris.sqlite'.format(now)
                 database.set_contents_from_filename('./resources/horaris.sqlite')
+                message += 'Uploaded DB to S3\n'
                 private_settings = Key(bucket)
                 private_settings.key = '/{}/settings_private.py'.format(now)
                 private_settings.set_contents_from_filename('./horarispompeu/settings_private.py')
+                message += 'Uploaded private_settings.py to S3\n'
                 supervisord_config = Key(bucket)
                 supervisord_config.key = '/{}/supervisord_horarispompeu.conf'.format(now)
                 supervisord_config.set_contents_from_filename(settings.SUPERVISORD_CONFIG)
+                message += 'Uploaded supervisor conf to S3\n'
                 nginx_config = Key(bucket)
                 nginx_config.key = '/{}/nginx_horarispompeu'.format(now)
                 nginx_config.set_contents_from_filename(settings.NGINX_CONFIG)
+                message += 'Uploaded nginx conf to S3\n'
             except:
                 # If something goes wrong, email traceback
                 end = time.time()

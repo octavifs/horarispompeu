@@ -49,6 +49,7 @@ Create a virtualenv (you might need to reenter the terminal so .bashrc changes c
     mkvirtualenv horarispompeu
 
 Clone the repo and install requirements:
+
     workon horarispompeu
     git clone https://github.com/octavifs/horarispompeu
     pip install -r requirements.txt
@@ -127,7 +128,7 @@ My crontab:
 ### Check latest added lesson in the admin panel
 Open the Lessons view in the django admin and sort by creation date. The admin interface allows all sorts of sorting and filtering: by date, subject, start, end, type of lesson, etc.
 
-### SubjectAlias an Subject
+### SubjectAlias and Subject
 The SubjectAlias model always has to be linked with a Subject. Sometimes, the correct Subject for the SubjectAlias simply does not exist. In this case, a new Subject can be created directly from the detail view in the SubjectAlias admin panel.
 
 ### Creating a subjects.json file

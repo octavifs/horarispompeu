@@ -101,10 +101,16 @@ def parsehours(text):
     Parses a text using regexp_date and obtains an initial and final hour for
     an event.
     """
-    hours = [int(h) for h in regexp_date.match(text.strip()).groups()]
-    h_init = time(hours[0], hours[1])
-    h_end = time(hours[2], hours[3])
-    return (h_init, h_end)
+    match = regexp_date.match(text.strip())
+    if not match:
+        return
+    hours = [int(h) for h in match.groups()]
+    try:
+        h_init = time(hours[0], hours[1])
+        h_end = time(hours[2], hours[3])
+        return (h_init, h_end)
+    except ValueError:
+        return
 
 
 def parselesson(text, h_init, h_end, day):
@@ -137,8 +143,8 @@ def parselesson(text, h_init, h_end, day):
         common_data = []
         it = iter(lines[1:])
         for l in it:
-            if regexp_date.match(l):
-                parsed_date = parsehours(l)
+            parsed_date = parsehours(l)
+            if parsed_date:
                 c.date_start = datetime.combine(day, parsed_date[0])
                 c.date_end = datetime.combine(day, parsed_date[1])
                 break
@@ -147,15 +153,15 @@ def parselesson(text, h_init, h_end, day):
         specific_data = []
         for l in it:
             # Update hour if necessary
-            if regexp_date.match(l):
+            new_date = parsehours(l)
+            if new_date:
                 # First, add buffered lesson
                 c.data = "\n".join(common_data + specific_data)
                 yield c.copy()
                 # Then, reset specific data and change hours
                 specific_data = []
-                parsed_date = parsehours(l)
-                c.date_start = datetime.combine(day, parsed_date[0])
-                c.date_end = datetime.combine(day, parsed_date[1])
+                c.date_start = datetime.combine(day, new_date[0])
+                c.date_end = datetime.combine(day, new_date[1])
             # Yield a lesson for each group
             else:
                 specific_data.append(l)

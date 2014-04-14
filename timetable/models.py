@@ -25,9 +25,11 @@ class Faculty(models.Model):
     e.g. ESUP is the faculty name of the engineering section in the UPF.
     """
     name = models.CharField(max_length=100, primary_key=True)
+    name_key = models.CharField(max_length=10)
 
     class Meta:
-        verbose_name_plural = 'Faculties'  # admin will show correct plural
+        verbose_name_plural = "Faculties"  # admin will show correct plural
+        unique_together = ("name", "name_key")
 
     def __unicode__(self):
         return self.name
@@ -42,9 +44,11 @@ class Degree(models.Model):
     """
     faculty = models.ForeignKey(Faculty)
     name = models.CharField(max_length=100)
+    name_key = models.CharField(max_length=10)
+    plan_key = models.CharField(max_length=10)
 
     class Meta:
-        unique_together = ("faculty", "name")
+        unique_together = ("faculty", "name", "name_key", "plan_key")
         ordering = ["name"]
 
     def __unicode__(self):
@@ -53,42 +57,26 @@ class Degree(models.Model):
             "faculty: {0}".format(repr(self.faculty)),
             "name: {0}".format(repr(self.name)),
         ]
-        return '\n'.join(rep)
+        return "\n".join(rep)
 
 
 class Subject(models.Model):
     """
     Stores the name of the subject.
-    A subject is taught by a faculty. Subjects are not linked to any degree in
-    particular, since there are many degrees that share the same subjects.
-    A pair of subject name and faculty are unique.
+    Subjects are linked to a degree. Still, there are subjects that may be
+    taught in multiple degrees, even though they are different entries. We will
+    simply duplicate the information.
     """
-    faculty = models.ForeignKey(Faculty)
+    degree = models.ForeignKey(Degree)
     name = models.CharField(max_length=100)
+    name_key = models.CharField(max_length=10)
 
     class Meta:
-        unique_together = ("faculty", "name")
-        ordering = ("name", "faculty")
+        unique_together = ("degree", "name", "name_key")
+        ordering = ("name", "degree")
 
     def __unicode__(self):
-        return "{0} a {1}".format(self.name, self.faculty)
-
-
-class SubjectAlias(models.Model):
-    """
-    Links a subject alias to its 'official' name.
-    Parsed data is not always accurate with subject names, so to solve
-    inconsistencies, this model will link those mispellings with the actual
-    subject object.
-    """
-    name = models.CharField(max_length=100)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True,
-                                blank=True)
-
-    class Meta:
-        verbose_name_plural = 'Subject aliases'
-        unique_together = ("name", "subject")
-        ordering = ("subject", "name")
+        return "{0} a {1}".format(self.name, self.degree.name)
 
 
 class AcademicYear(models.Model):
@@ -97,17 +85,13 @@ class AcademicYear(models.Model):
     E.g. 2013-14, 2014-15...
     """
     year = models.CharField(max_length=100, primary_key=True)
+    year_key = models.CharField(max_length=10)
+
+    class Meta:
+        unique_together = ("year", "year_key")
 
     def __unicode__(self):
         return self.year
-
-
-# Since there are only 2 groups available, I put them in a tuple instead of a
-# model
-GROUP_CHOICES = (
-    ("GRUP 1", "GRUP 1"),
-    ("GRUP 2", "GRUP 2"),
-)
 
 
 class Lesson(models.Model):
@@ -115,23 +99,20 @@ class Lesson(models.Model):
     Lesson is a class, from an specific subject, taking
     place on a specific day, for some group.
     """
-    subject = models.ForeignKey(Subject, null=True, blank=True)
-    group = models.CharField(max_length=50, choices=GROUP_CHOICES, blank=True)
-    date_start = models.DateTimeField('lesson start', null=True, blank=True)
-    date_end = models.DateTimeField('lesson end', null=True, blank=True)
+    subject = models.ForeignKey(Subject)
+    group = models.CharField(max_length=50)
+    date_start = models.DateTimeField('lesson start')
+    date_end = models.DateTimeField('lesson end')
     academic_year = models.ForeignKey(AcademicYear)
+    term = models.CharField(max_length=50)
     entry = models.TextField(blank=True)
-    raw_entry = models.TextField()
+    location = models.CharField(max_length=50, blank=True)
     creation = models.DateTimeField(auto_now_add=True)
-    # Each lesson has a unique id, based on
-    #   hash((lesson (by timetable.parser), group, academic_year))
-    # This makes them very easy to delete
-    uuid = models.BigIntegerField(editable=False)
 
     class Meta:
         ordering = ("-academic_year", "date_start", "subject", "group")
-        unique_together = ("subject", "group", "entry", "date_start",
-                           "date_end", "academic_year")
+        unique_together = ("subject", "group", "date_start", "date_end",
+                           "academic_year", "term", "entry", "location")
 
     def __unicode__(self):
         rep = [
@@ -143,9 +124,20 @@ class Lesson(models.Model):
         ]
         return '\n'.join(rep)
 
-    def complete(self):
-        return bool(self.subject and self.entry)
-    complete.boolean = True
+    def __key(self):
+        return (self.subject.id, self.group, self.date_start, self.date_end,
+                self.academic_year.id, self.term, self.entry, self.location)
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return other.__key() == self.__key()
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class DegreeSubject(models.Model):
@@ -153,32 +145,25 @@ class DegreeSubject(models.Model):
     This model links a subject with a degree. It also stores some additional
     information, like the academic term, year or group.
     """
-    TERM_CHOICES = (
-        ('1r Trimestre', '1r Trimestre'),
-        ('2n Trimestre', '2n Trimestre'),
-        ('3r Trimestre', '3r Trimestre'),
-    )
-    YEAR_CHOICES = (
-        ("1r", "1r"),
-        ("2n", "2n"),
-        ("3r", "3r"),
-        ("4t", "4t"),
-        ("optatives", "optatives"),
-    )
     subject = models.ForeignKey(Subject)
     degree = models.ForeignKey(Degree)
     academic_year = models.ForeignKey(AcademicYear)
-    year = models.CharField(max_length=50, choices=YEAR_CHOICES)
-    term = models.CharField(max_length=50, choices=TERM_CHOICES)
-    group = models.CharField(max_length=50, choices=GROUP_CHOICES)
+    course = models.CharField(max_length=50)
+    course_key = models.CharField(max_length=10)
+    term = models.CharField(max_length=50)
+    term_key = models.CharField(max_length=10)
+    group = models.CharField(max_length=50)
+    group_key = models.CharField(max_length=10)
 
     class Meta:
-        ordering = ("-academic_year", "year", "term", "subject", "group")
-        unique_together = ("subject", "degree", "academic_year", "year", "term",
-                           "group")
+        ordering = ("-academic_year", "course", "term", "subject", "group")
+        unique_together = ("subject", "degree", "academic_year", "course",
+                           "term", "group", "course_key", "term_key",
+                           "group_key")
 
     def __unicode__(self):
-        return " ".join([self.subject.name, self.degree.name, self.year, self.term])
+        return " ".join([self.subject.name, self.degree.name, self.course,
+                         self.term])
 
     def lessons(self):
         """
@@ -187,7 +172,8 @@ class DegreeSubject(models.Model):
         return Lesson.objects.filter(
             subject=self.subject,
             academic_year=self.academic_year,
-            group=self.group
+            group=self.group,
+            term=self.term
         )
 
 

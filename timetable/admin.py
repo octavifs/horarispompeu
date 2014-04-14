@@ -20,27 +20,29 @@ from timetable.models import *
 
 # Register all classes from the model to the admin panel
 class SubjectAdmin(admin.ModelAdmin):
+    def degree_name(self, subject):
+        return subject.degree.name
     search_fields = ['name']
-    list_display = ['name', 'faculty']
+    list_display = ['name', 'degree_name']
 
 
-class SubjectAliasAdmin(admin.ModelAdmin):
-    search_fields = ['subject__name', 'name']
-    list_display = ['name', 'subject']
+class DegreeAdmin(admin.ModelAdmin):
+    search_fields = ['faculty', 'name', 'name_key']
+    list_display = ['faculty', 'name', 'name_key', 'plan_key']
 
 
 class DegreeSubjectAdmin(admin.ModelAdmin):
     def subject_name(self, degreesubject):
         return degreesubject.subject.name
 
-    def subject_faculty(self, degreesubject):
-        return degreesubject.subject.faculty
+    def degree_faculty(self, degreesubject):
+        return degreesubject.degree.faculty.name
 
     def degree_name(self, degreesubject):
         return degreesubject.degree.name
 
     search_fields = ['subject__name', 'degree__name']
-    list_display = ['subject_name', 'subject_faculty', 'degree_name', 'year',
+    list_display = ['subject_name', 'degree_faculty', 'degree_name', 'course',
                     'term', 'group', 'academic_year']
 
 
@@ -49,11 +51,11 @@ class LessonAdmin(admin.ModelAdmin):
         return lesson.subject.name
 
     def subject_faculty(self, lesson):
-        return lesson.subject.faculty
+        return lesson.subject.degree.faculty
 
     search_fields = ['id', 'subject__name']
     list_display = ['subject_name', 'subject_faculty', 'entry',
-                    'date_start', 'date_end', 'creation', 'complete']
+                    'date_start', 'date_end', 'creation']
     date_hierarchy = 'date_start'
     list_filter = ['date_start', 'subject__name', 'creation']
     save_as = True
@@ -75,9 +77,8 @@ class CalendarAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Faculty)
-admin.site.register(Degree)
+admin.site.register(Degree, DegreeAdmin)
 admin.site.register(Subject, SubjectAdmin)
-admin.site.register(SubjectAlias, SubjectAliasAdmin)
 admin.site.register(AcademicYear)
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(DegreeSubject, DegreeSubjectAdmin)

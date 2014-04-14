@@ -17,11 +17,8 @@ from __future__ import unicode_literals
 import operator
 import hashlib
 import subprocess
-from functools import wraps
-from random import randrange
-from os.path import join
 
-from django.shortcuts import render as render_django
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.db.models import Q
 from django.core.files.base import ContentFile
@@ -32,45 +29,11 @@ import timetable.calendar
 from timetable.forms import ContactForm
 
 
-
-def render(request, template_name, dictionary=None, *args, **kwargs):
-    """
-    Redefined render function. Populates the dictionary with some recurrent
-    entries in the context.
-    """
-    base_dict = {
-        'term': settings.TERM,
-        'background_img': request.session.get('background_img'),
-        'background_caption': request.session.get('background_caption'),
-    }
-    if isinstance(dictionary, dict):
-        dictionary.update(base_dict)
-    else:
-        dictionary = base_dict
-    return render_django(request, template_name, dictionary, *args, **kwargs)
-
-def background_decorator(view):
-    @wraps(view)
-    def wrapper(request):
-        background_img = request.session.get('background_img')
-        background_caption = request.session.get('background_caption')
-        if not background_img or not background_caption:
-            idx = randrange(len(settings.BACKGROUND_IMAGES))
-            entry = settings.BACKGROUND_IMAGES[idx]
-            request.session['background_img'] = join(
-                settings.BACKGROUND_IMAGES_PREFIX, entry[0])
-            request.session['background_caption'] = entry[1]
-        return view(request)
-    return wrapper
-
-
 # The view start here
-@background_decorator
 def index(request):
     return render(request, 'index.html')
 
 
-@background_decorator
 def degree(request):
     faculty = Faculty.objects.get(pk='ESUP')
     degree_list = Degree.objects.filter(faculty=faculty)
@@ -78,7 +41,6 @@ def degree(request):
     return render(request, 'degree.html', context)
 
 
-@background_decorator
 def year(request):
     # First, deal with invalid inputs:
     if (
@@ -110,7 +72,6 @@ def year(request):
     return render(request, 'year.html', context)
 
 
-@background_decorator
 def subject(request):
     # First, deal with invalid inputs:
     if (
@@ -154,7 +115,6 @@ def subject(request):
     return render(request, 'subject.html', context)
 
 
-@background_decorator
 def calendar(request):
     # First, deal with invalid inputs:
     if (
@@ -226,12 +186,10 @@ def subscription(request):
     return render(request, 'subscription_result.html', {'result': result})
 
 
-@background_decorator
 def pmf(request):
     return render(request, 'pmf.html')
 
 
-@background_decorator
 def contact(request):
     if request.method == 'POST':  # If the form has been submitted...
         form = ContactForm(request.POST)
@@ -252,6 +210,5 @@ def contact(request):
     })
 
 
-@background_decorator
 def thanks(request):
     return render(request, 'thanks.html')

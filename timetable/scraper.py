@@ -7,10 +7,16 @@ from gevent import monkey
 monkey.patch_socket()
 from gevent.pool import Group
 
-from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject, Subject, Lesson
+from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
+    Subject, Lesson
 
 
+# Create a global session for the script, that will hold the necessary cookies
+# to perform valid HTTP requests to the backend
 SESSION = requests.Session()
+SESSION.mount('http://', requests.adapters.HTTPAdapter(pool_connections=10,
+                                                       pool_maxsize=10,
+                                                       max_retries=3))
 
 
 class Node(object):
@@ -291,6 +297,7 @@ def populate_lessons(degree_subjects):
     # Set up session cookies
     init_session()
     # Compile regex
+    # This regex matches a JS Object found in the retrieved HTML
     lesson_re = re.compile(r"""
         \{\s*
         title:\s*\"(?P<title>.*)\",\s*
@@ -304,6 +311,7 @@ def populate_lessons(degree_subjects):
         publicarObservacion:\s*\"(?P<publicarObservacion>.*)\",\s*
         observacion:\s*\"(?P<observacion>.*)\"\s*
         \}""", re.VERBOSE)
+
     def store_ds_lessons(ds):
         data = {
             'planDocente': ds.academic_year.year_key,

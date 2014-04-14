@@ -29,11 +29,6 @@ import timetable.calendar
 from timetable.forms import ContactForm
 
 
-# The view start here
-def index(request):
-    return render(request, 'index.html')
-
-
 def degree(request):
     faculty = Faculty.objects.get(pk='ESUP')
     degree_list = Degree.objects.filter(faculty=faculty)
@@ -186,10 +181,6 @@ def subscription(request):
     return render(request, 'subscription_result.html', {'result': result})
 
 
-def pmf(request):
-    return render(request, 'pmf.html')
-
-
 def contact(request):
     if request.method == 'POST':  # If the form has been submitted...
         form = ContactForm(request.POST)
@@ -208,7 +199,3 @@ def contact(request):
     return render(request, 'contact.html', {
         'form': form,
     })
-
-
-def thanks(request):
-    return render(request, 'thanks.html')

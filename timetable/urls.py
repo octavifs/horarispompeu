@@ -13,17 +13,19 @@
 # limitations under the License.
 
 from django.conf.urls import patterns, url
+from django.views.generic import TemplateView
 from timetable import views
 
 urlpatterns = patterns(
     '',
-    url(r'^$', views.index, name='index'),
+    url(r'^$', TemplateView.as_view(template_name='index.html'), name='index'),
     url(r'^grau/$', views.degree, name='degree'),
     url(r'^curs/$', views.year, name='year'),
     url(r'^assignatures/$', views.subject, name='subject'),
     url(r'^calendari/$', views.calendar, name='calendar'),
     url(r'^subscriu/$', views.subscription, name='subscription'),
-    url(r'^pmf/$', views.pmf, name='pmf'),
+    url(r'^pmf/$', TemplateView.as_view(template_name='pmf.html'), name='pmf'),
     url(r'^problemes/$', views.contact, name='contact'),
-    url(r'^gracies/$', views.thanks, name='thanks'),
+    url(r'^gracies/$', TemplateView.as_view(template_name='thanks.html'),
+        name='thanks'),
 )

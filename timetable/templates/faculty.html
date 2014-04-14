@@ -13,7 +13,8 @@
 
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <form action="{% url 'degree' %}" method="get" class="form-horizontal" role="form">
+  <form action="{% url 'degree' %}" method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
   <div class="form-group" data-toggle="buttons">
   {% for faculty in faculty_list%}
       <label class="btn btn-default col-xs-12 col-md-6 col-lg-4">

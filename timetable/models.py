@@ -100,7 +100,7 @@ class Lesson(models.Model):
     place on a specific day, for some group.
     """
     subject = models.ForeignKey(Subject)
-    group = models.CharField(max_length=50)
+    group_key = models.CharField(max_length=50)
     date_start = models.DateTimeField('lesson start')
     date_end = models.DateTimeField('lesson end')
     academic_year = models.ForeignKey(AcademicYear)
@@ -110,8 +110,8 @@ class Lesson(models.Model):
     creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ("-academic_year", "date_start", "subject", "group")
-        unique_together = ("subject", "group", "date_start", "date_end",
+        ordering = ("-academic_year", "date_start", "subject", "group_key")
+        unique_together = ("subject", "group_key", "date_start", "date_end",
                            "academic_year", "term", "entry", "location")
 
     def __unicode__(self):

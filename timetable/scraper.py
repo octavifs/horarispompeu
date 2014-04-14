@@ -332,7 +332,7 @@ def populate_lessons(degree_subjects):
             # this way we make sure we only keep the latest data
             Lesson.objects.filter(
                 subject=ds.subject,
-                group=ds.group,
+                group_key=ds.group_key,
                 academic_year=ds.academic_year,
                 term=ds.term).delete()
         for raw_lesson in raw_lessons:
@@ -340,7 +340,7 @@ def populate_lessons(degree_subjects):
                 continue
             Lesson(
                 subject=ds.subject,
-                group=ds.group,
+                group_key=ds.group_key,
                 date_start=datetime.strptime(raw_lesson["start"],
                                              "%Y-%m-%d %H:%M:%S"),
                 date_end=datetime.strptime(raw_lesson["end"],

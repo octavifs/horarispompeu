@@ -16,7 +16,8 @@
   <p><strong>{{ error_message }}</strong></p>
   {% endif %}
 
-  <form action="{% url 'subject' %}" method="get" class="form-horizontal" role="form">
+  <form action="{% url 'subject' %}" method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
   {% for degree, course_list in degree_list.iteritems %}
   <div class="form-group" data-toggle="buttons">
       <h2>{{ degree }}</h2>    

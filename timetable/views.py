@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from django.core.files.base import ContentFile
-from django.views.generic import ListView, FormView, TemplateView
+from django.views.generic import TemplateView, FormView
 from django.http import Http404
 
 from django.conf import settings
@@ -32,34 +32,49 @@ import timetable.calendar
 from timetable.forms import ContactForm
 
 
-class FacultyList(ListView):
+# TemplateView will also have a dispatch handler for POST requests
+# (same function as GET)
+# See the source for dispatch:
+# https://github.com/django/django/blob/master/django/views/generic/base.py#L79
+# TemplateView only defines a get handler by default
+TemplateView.post = TemplateView.get
+
+
+class FacultyList(TemplateView):
     template_name = 'faculty.html'
-    model = Faculty
 
-    def get_queryset(self):
+    def get_context_data(self, **kwargs):
         faculties = (d.faculty.id for d in Degree.objects.all())
-        queryset = super(FacultyList, self).get_queryset()
-        return queryset.filter(id__in=faculties)
+        return {'faculty_list': Faculty.objects.filter(id__in=faculties)}
 
 
-class DegreeList(ListView):
+class DegreeList(TemplateView):
     template_name = 'degree.html'
-    model = Degree
-    allow_empty = False
 
-    def get_queryset(self):
-        queryset = super(DegreeList, self).get_queryset()
-        faculties = self.request.GET.getlist("faculty")
-        return queryset.filter(faculty__in=faculties)
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        print request
+        return super(DegreeList, self).http_method_not_allowed(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        faculties = self.request.REQUEST.getlist("faculty") or \
+                    self.request.session.get("faculty")
+        if not faculties:
+            raise Http404
+        self.request.session["faculty"] = faculties
+        queryset = Degree.objects.filter(faculty__in=faculties)
+        return {'degree_list': queryset}
+
 
 
 class CourseList(TemplateView):
     template_name = 'course.html'
-    http_method_names = 'get'
 
     def get_context_data(self, **kwargs):
         queryset = DegreeSubject.objects.all()
-        degrees = self.request.GET.getlist("degree")
+        degrees = self.request.REQUEST.getlist("degree") or \
+                  self.request.session.get("degree")
+        if not degrees:
+            raise Http404
+        self.request.session["degree"] = degrees
         degree_and_group_list = queryset.filter(
             degree__in=degrees,
             academic_year=settings.ACADEMIC_YEAR,
@@ -75,8 +90,6 @@ class CourseList(TemplateView):
             'group',
             'group_key'
         ).distinct()
-        if not degree_and_group_list:
-            raise Http404
         degree_list = {}
         for entry in degree_and_group_list:
             degree_list.setdefault(entry['degree__name'], []).append(entry)
@@ -85,12 +98,14 @@ class CourseList(TemplateView):
 
 class SubjectView(TemplateView):
     template_name = 'subject.html'
-    http_method_names = 'get'
 
     def get_context_data(self, **kwargs):
-        degree_course = self.request.GET.getlist('degree_course')
+        degree_course = self.request.REQUEST.getlist('degree_course') or \
+                        self.request.session.get('degree_course')
         if not degree_course:
             raise Http404
+        # Store in cookies
+        self.request.session['degree_course'] = degree_course
         courses = []
         for entry in degree_course:
             degree_id, course_key, group_key = entry.split('_')
@@ -113,20 +128,29 @@ class SubjectView(TemplateView):
             'group',
             'group_key',
             'course',
-            'course_key',
         ).distinct()
         degree_course_subjects = {}
         for ds in degree_subjects:
             degree_course_subjects[ds['degree__name']] = {}
         for ds in degree_subjects:
-            degree_course_subjects[ds['degree__name']][ds['group']] = []
+            degree_course_subjects[ds['degree__name']][ds['course']] = []
         for ds in degree_subjects:
-            degree_course_subjects[ds['degree__name']][ds['group']].append(ds)
-        print degree_course_subjects
+            degree_course_subjects[ds['degree__name']][ds['course']].append(ds)
         return {
             'degree_course_subjects': degree_course_subjects
         }
 
+
+# class CalendarView(TemplateView):
+#     template_name = 'calendar.html'
+#     http_method_names = 'get'
+#
+#     def get_context_data(self, **kwargs):
+#         degree_subject = self.request.GET.getlist("degree_subject")
+#         if not degree_subject:
+#             raise Http404
+#         degree_subject_args = (ds.split("_") for ds in degree_subject)
+#         degree_subject_objects =
 
 def calendar(request):
     # First, deal with invalid inputs:

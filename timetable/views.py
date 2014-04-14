@@ -55,6 +55,7 @@ class DegreeList(ListView):
 
 class CourseList(TemplateView):
     template_name = 'course.html'
+    http_method_names = 'get'
 
     def get_context_data(self, **kwargs):
         queryset = DegreeSubject.objects.all()
@@ -82,48 +83,49 @@ class CourseList(TemplateView):
         return {'degree_list': degree_list}
 
 
-def subject(request):
-    # First, deal with invalid inputs:
-    if (
-        not request.session.get('degree_year') and
-        not request.POST.getlist('degree_year')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
-    # Save POST parameters to cookie
-    if request.method == 'POST':
-        request.session['degree_year'] = request.POST.getlist('degree_year')
-    degree_year = request.session['degree_year']
-    courses = []
-    for entry in degree_year:
-        degree_id, course, group = entry.split('_')
-        courses.append((degree_id, course, group))
-    q_list = []
-    for degree, course, group in courses:
-        q = Q(degree=degree, year=course, group=group,
-              academic_year=academic_year)
-        q_list.append(q)
-    degree_subjects = DegreeSubject.objects.filter(
-        reduce(operator.or_, q_list)
-    ).order_by(
-        'year',
-        'subject__name',
-    ).values(
-        'subject',
-        'subject__name',
-        'group',
-        'year'
-    ).distinct()
-    year_degree_subjects = {}
-    for degree_subject in degree_subjects:
-        year_degree_subjects.setdefault(degree_subject['year'], []).append(
-            degree_subject)
-    context = {
-        'year_degree_subjects': sorted(year_degree_subjects.iteritems()),
-    }
-    return render(request, 'subject.html', context)
+class SubjectView(TemplateView):
+    template_name = 'subject.html'
+    http_method_names = 'get'
+
+    def get_context_data(self, **kwargs):
+        degree_course = self.request.GET.getlist('degree_course')
+        if not degree_course:
+            raise Http404
+        courses = []
+        for entry in degree_course:
+            degree_id, course_key, group_key = entry.split('_')
+            courses.append((degree_id, course_key, group_key))
+        q_list = []
+        for degree, course, group in courses:
+            q = Q(degree=degree, course_key=course, group_key=group,
+                  academic_year=settings.ACADEMIC_YEAR)
+            q_list.append(q)
+        degree_subjects = DegreeSubject.objects.filter(
+            reduce(operator.or_, q_list)
+        ).order_by(
+            'course',
+            'subject__name',
+        ).values(
+            'degree',
+            'degree__name',
+            'subject',
+            'subject__name',
+            'group',
+            'group_key',
+            'course',
+            'course_key',
+        ).distinct()
+        degree_course_subjects = {}
+        for ds in degree_subjects:
+            degree_course_subjects[ds['degree__name']] = {}
+        for ds in degree_subjects:
+            degree_course_subjects[ds['degree__name']][ds['group']] = []
+        for ds in degree_subjects:
+            degree_course_subjects[ds['degree__name']][ds['group']].append(ds)
+        print degree_course_subjects
+        return {
+            'degree_course_subjects': degree_course_subjects
+        }
 
 
 def calendar(request):

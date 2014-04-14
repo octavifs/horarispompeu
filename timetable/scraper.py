@@ -3,6 +3,9 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 import requests
+from gevent import monkey
+monkey.patch_socket()
+from gevent.pool import Group
 
 from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject, Subject, Lesson
 
@@ -301,7 +304,7 @@ def populate_lessons(degree_subjects):
         publicarObservacion:\s*\"(?P<publicarObservacion>.*)\",\s*
         observacion:\s*\"(?P<observacion>.*)\"\s*
         \}""", re.VERBOSE)
-    for ds in degree_subjects:
+    def store_ds_lessons(ds):
         data = {
             'planDocente': ds.academic_year.year_key,
             'centro': ds.degree.faculty.name_key,
@@ -313,7 +316,8 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
-        r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/look[conpub]MostrarPubHora', data=data)
+        r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/' +
+                         'look[conpub]MostrarPubHora', data=data)
         raw_lessons = (m.groupdict() for m in lesson_re.finditer(r.text))
         if raw_lessons:
             # Delete previously stored lessons related to that degreesubject
@@ -337,3 +341,5 @@ def populate_lessons(degree_subjects):
                 term=ds.term,
                 entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
                 location=raw_lesson["aula"]).save()
+    group = Group()
+    group.map(store_ds_lessons, degree_subjects)

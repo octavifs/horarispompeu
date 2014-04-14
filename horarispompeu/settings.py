@@ -4,7 +4,7 @@
 DEBUG = True
 # Sets up which calendars should be parsed
 TERM = "2n Trimestre"
-ACADEMIC_YEAR = "2013-14"
+ACADEMIC_YEAR = "2013 - 2014"
 
 TEMPLATE_DEBUG = DEBUG
 

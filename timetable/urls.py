@@ -19,13 +19,14 @@ from timetable import views
 urlpatterns = patterns(
     '',
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='index'),
-    url(r'^grau/$', views.degree, name='degree'),
-    url(r'^curs/$', views.year, name='year'),
+    url(r'^facultat/$', views.FacultyList.as_view(), name='faculty'),
+    url(r'^grau/$', views.DegreeList.as_view(), name='degree'),
+    url(r'^curs/$', views.CourseList.as_view(), name='course'),
     url(r'^assignatures/$', views.subject, name='subject'),
     url(r'^calendari/$', views.calendar, name='calendar'),
     url(r'^subscriu/$', views.subscription, name='subscription'),
     url(r'^pmf/$', TemplateView.as_view(template_name='pmf.html'), name='pmf'),
-    url(r'^problemes/$', views.contact, name='contact'),
+    url(r'^problemes/$', views.ContactView.as_view(), name='contact'),
     url(r'^gracies/$', TemplateView.as_view(template_name='thanks.html'),
         name='thanks'),
 )

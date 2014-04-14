@@ -24,7 +24,7 @@ class Faculty(models.Model):
     within a university, so it is used as the primary key for the model.
     e.g. ESUP is the faculty name of the engineering section in the UPF.
     """
-    name = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=100, unique=True)
     name_key = models.CharField(max_length=10)
 
     class Meta:

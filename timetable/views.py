@@ -19,52 +19,67 @@ import hashlib
 import subprocess
 
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from django.core.files.base import ContentFile
+from django.views.generic import ListView, FormView, TemplateView
+from django.http import Http404
 
 from django.conf import settings
+
 from timetable.models import *
 import timetable.calendar
 from timetable.forms import ContactForm
 
 
-def degree(request):
-    faculty = Faculty.objects.get(pk='ESUP')
-    degree_list = Degree.objects.filter(faculty=faculty)
-    context = {'degree_list': degree_list}
-    return render(request, 'degree.html', context)
+class FacultyList(ListView):
+    template_name = 'faculty.html'
+    model = Faculty
+
+    def get_queryset(self):
+        faculties = (d.faculty.id for d in Degree.objects.all())
+        queryset = super(FacultyList, self).get_queryset()
+        return queryset.filter(id__in=faculties)
 
 
-def year(request):
-    # First, deal with invalid inputs:
-    if (
-        not request.session.get('degree') and
-        not request.POST.getlist('degree')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Save POST parameters to cookie
-    if request.method == 'POST':
-        request.session['degree'] = request.POST.getlist('degree')
-    # Once input is seemingly valid (the list may still contain invalid degree ids), retrieve years and groups:
-    degree_and_group_list = DegreeSubject.objects.filter(
-        degree__in=request.session['degree']
-    ).order_by(
-        'degree',
-        'year',
-        'group'
-    ).values(
-        'degree',
-        'degree__name',
-        'year',
-        'group',
-    ).distinct()
-    degree_list = {}
-    for entry in degree_and_group_list:
-        degree_list.setdefault(entry['degree__name'], []).append(entry)
-    context = {'degree_list': degree_list}
-    return render(request, 'year.html', context)
+class DegreeList(ListView):
+    template_name = 'degree.html'
+    model = Degree
+    allow_empty = False
+
+    def get_queryset(self):
+        queryset = super(DegreeList, self).get_queryset()
+        faculties = self.request.GET.getlist("faculty")
+        return queryset.filter(faculty__in=faculties)
+
+
+class CourseList(TemplateView):
+    template_name = 'course.html'
+
+    def get_context_data(self, **kwargs):
+        queryset = DegreeSubject.objects.all()
+        degrees = self.request.GET.getlist("degree")
+        degree_and_group_list = queryset.filter(
+            degree__in=degrees,
+            academic_year=settings.ACADEMIC_YEAR,
+        ).order_by(
+            'degree',
+            'course_key',
+            'group'
+        ).values(
+            'degree',
+            'degree__name',
+            'course',
+            'course_key',
+            'group',
+            'group_key'
+        ).distinct()
+        if not degree_and_group_list:
+            raise Http404
+        degree_list = {}
+        for entry in degree_and_group_list:
+            degree_list.setdefault(entry['degree__name'], []).append(entry)
+        return {'degree_list': degree_list}
 
 
 def subject(request):
@@ -103,7 +118,8 @@ def subject(request):
     ).distinct()
     year_degree_subjects = {}
     for degree_subject in degree_subjects:
-        year_degree_subjects.setdefault(degree_subject['year'], []).append(degree_subject)
+        year_degree_subjects.setdefault(degree_subject['year'], []).append(
+            degree_subject)
     context = {
         'year_degree_subjects': sorted(year_degree_subjects.iteritems()),
     }
@@ -181,21 +197,17 @@ def subscription(request):
     return render(request, 'subscription_result.html', {'result': result})
 
 
-def contact(request):
-    if request.method == 'POST':  # If the form has been submitted...
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            subject = '[HP] [SUPORT] {}'.format(form.cleaned_data['subject'])
-            message = form.cleaned_data['message']
-            sender = form.cleaned_data['sender']
-            recipients = ['horarispompeu@gmail.com']
+class ContactView(FormView):
+    form_class = ContactForm
+    success_url = reverse_lazy('thanks')
+    template_name = 'contact.html'
 
-            from django.core.mail import send_mail
-            send_mail(subject, message, sender, recipients)
-            return HttpResponseRedirect('/gracies/')
-    else:
-        form = ContactForm()
+    def form_valid(self, form):
+        subject = '[HP] [SUPORT] {}'.format(form.cleaned_data['subject'])
+        message = form.cleaned_data['message']
+        sender = form.cleaned_data['sender']
+        recipients = ['horarispompeu@gmail.com']
+        from django.core.mail import send_mail
+        send_mail(subject, message, sender, recipients)
 
-    return render(request, 'contact.html', {
-        'form': form,
-    })
+        return super(ContactView, self).form_valid(form)

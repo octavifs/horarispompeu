@@ -11,21 +11,21 @@
     {% for error in form.sender.errors %}
     <div class="alert alert-danger" style="margin-bottom: 3px;">{{ error }}</div>
     {% endfor %}
-    <input type="email" class="form-control" id="id_sender" name="sender" placeholder="El meu email és...">
+    <input type="email" class="form-control" id="id_sender" name="sender" placeholder="El meu email és..." value="{{ form.sender.data|default:"" }}">
 </div>
 <div class="form-group">
     <label for="id_subject">Problema:</label>
     {% for error in form.subject.errors %}
     <div class="alert alert-danger" style="margin-bottom: 3px;">{{ error }}</div>
     {% endfor %}
-    <input type="text" class="form-control" id="id_subject" name="subject" placeholder="Tinc problemes amb...">
+    <input type="text" class="form-control" id="id_subject" name="subject" placeholder="Tinc problemes amb..." value="{{ form.subject.data|default:"" }}">
 </div>
 <div class="form-group">
     <label for="id_message">Descripció:</label>
     {% for error in form.message.errors %}
     <div class="alert alert-danger" style="margin-bottom: 3px;">{{ error }}</div>
     {% endfor %}
-    <textarea id="id_message" name="message" class="form-control" rows="4"></textarea>
+    <textarea id="id_message" name="message" class="form-control" rows="4">{{ form.message.data|default:"" }}</textarea>
 </div>
 <div class="form-group">
     <button type="submit" class="btn btn-lg btn-danger">Envia <span class="glyphicon glyphicon-send"></span></button>

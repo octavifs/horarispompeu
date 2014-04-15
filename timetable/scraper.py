@@ -292,7 +292,7 @@ def populate_lessons(degree_subjects):
     # Compile regex
     # This regex matches a JS Object found in the retrieved HTML
     lesson_re = re.compile(r"""
-        \{\ s*
+        \{\s*
         title:\s*\"(?P<title>.*)\",\s*
         aula:\s*\"(?P<aula>.*)\",\s*
         tipologia:\s*\"(?P<tipologia>.*)\",\s*
@@ -320,14 +320,13 @@ def populate_lessons(degree_subjects):
         r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
                          'look[conpub]MostrarPubHora', data=data)
         raw_lessons = (m.groupdict() for m in lesson_re.finditer(r.text))
-        if raw_lessons:
-            # Delete previously stored lessons related to that degreesubject
-            # this way we make sure we only keep the latest data
-            Lesson.objects.filter(
-                subject=ds.subject,
-                group_key=ds.group_key,
-                academic_year=ds.academic_year,
-                term=ds.term).delete()
+        # Delete previously stored lessons related to that degreesubject
+        # this way we make sure we only keep the latest data
+        Lesson.objects.filter(
+            subject=ds.subject,
+            group_key=ds.group_key,
+            academic_year=ds.academic_year,
+            term=ds.term).delete()
         for raw_lesson in raw_lessons:
             if raw_lesson['festivoNoLectivo'] == 'true':
                 continue

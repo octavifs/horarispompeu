@@ -24,7 +24,7 @@ class Command(NoArgsCommand):
             term_key=settings.TERM
         )
         self.stdout.write("Updating lessons. This will take a while...\n")
-        scraper.populate_db(degree_subjects)
+        scraper.populate_lessons(degree_subjects)
         self.stdout.write("DONE!\n")
         self.stdout.write("Updating calendars. This may also take a while...\n")
         calendars = Calendar.objects.filter(degree_subjects__in=degree_subjects)

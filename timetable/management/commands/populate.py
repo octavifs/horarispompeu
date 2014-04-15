@@ -1,5 +1,4 @@
 # encoding: utf-8
-
 from django.core.management.base import NoArgsCommand
 
 from django.conf import settings
@@ -19,5 +18,5 @@ class Command(NoArgsCommand):
         scraper.populate_db()
         self.stdout.write("DONE!\n")
         self.stdout.write("Populating Lessons. This will take even longer.\n")
-        scraper.populate_db(DegreeSubject.objects.all())
+        scraper.populate_lessons(DegreeSubject.objects.all())
         self.stdout.write("DONE!\n")

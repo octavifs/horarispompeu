@@ -28,7 +28,7 @@ from django.http import Http404
 from django.conf import settings
 
 from timetable.models import *
-from timetable import calendar as calendar_generator
+from timetable import ical
 from timetable.forms import ContactForm
 
 
@@ -51,9 +51,6 @@ class FacultyList(TemplateView):
 class DegreeList(TemplateView):
     template_name = 'degree.html'
 
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        print request
-        return super(DegreeList, self).http_method_not_allowed(request, *args, **kwargs)
     def get_context_data(self, **kwargs):
         faculties = self.request.REQUEST.getlist("faculty") or \
                     self.request.session.get("faculty")
@@ -182,7 +179,7 @@ class CalendarView(TemplateView):
             lessons = Lesson.objects.filter(lessons_filter)
             calendar = Calendar(name=degree_subjects_hash, )
             calendar.file.save(calendar.name + '.ics',
-                ContentFile(calendar_generator.generate(lessons)))
+                ContentFile(ical.generate(lessons)))
             calendar.degree_subjects.add(*degree_subjects)
         finally:
             return {

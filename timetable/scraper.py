@@ -3,10 +3,6 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 import requests
-from gevent import monkey
-monkey.patch_socket()
-from gevent.pool import Group
-
 from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
     Subject, Lesson
 
@@ -14,9 +10,6 @@ from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
 # Create a global session for the script, that will hold the necessary cookies
 # to perform valid HTTP requests to the backend
 SESSION = requests.Session()
-SESSION.mount('http://', requests.adapters.HTTPAdapter(pool_connections=10,
-                                                       pool_maxsize=10,
-                                                       max_retries=3))
 
 
 class Node(object):
@@ -299,7 +292,7 @@ def populate_lessons(degree_subjects):
     # Compile regex
     # This regex matches a JS Object found in the retrieved HTML
     lesson_re = re.compile(r"""
-        \{\s*
+        \{\ s*
         title:\s*\"(?P<title>.*)\",\s*
         aula:\s*\"(?P<aula>.*)\",\s*
         tipologia:\s*\"(?P<tipologia>.*)\",\s*
@@ -324,7 +317,7 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
-        r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/' +
+        r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
                          'look[conpub]MostrarPubHora', data=data)
         raw_lessons = (m.groupdict() for m in lesson_re.finditer(r.text))
         if raw_lessons:
@@ -349,5 +342,6 @@ def populate_lessons(degree_subjects):
                 term=ds.term,
                 entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
                 location=raw_lesson["aula"]).save()
-    group = Group()
-    group.map(store_ds_lessons, degree_subjects)
+
+    for ds in degree_subjects:
+        store_ds_lessons(ds)

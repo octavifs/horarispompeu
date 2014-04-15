@@ -36,13 +36,14 @@ def generate(lessons):
     cal.add('version', '2.0')
     # Give the calendar a name. I use this to remind the users where the
     # calendar comes from, in case they need a new one.
-    cal.add('x-wr-calname', 'horarispompeu.com {} {}'.format(
-        settings.TERM, settings.ACADEMIC_YEAR))
+    cal.add('x-wr-calname', 'horarispompeu.com {}'.format(
+        settings.ACADEMIC_YEAR))
     cal.add('x-wr-timezone', 'Europe/Madrid')
     for entry in lessons:
         event = Event()
         summary = "\n".join([entry.subject.name, entry.entry])
         event.add('summary', summary)
+        event.add('location', entry.location)
         event.add('dtstart', tz.localize(entry.date_start))
         event.add('dtend', tz.localize(entry.date_end))
         event.add('dtstamp', datetime.now(tz))

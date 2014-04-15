@@ -23,7 +23,7 @@ urlpatterns = patterns(
     url(r'^grau/$', views.DegreeList.as_view(), name='degree'),
     url(r'^curs/$', views.CourseList.as_view(), name='course'),
     url(r'^assignatures/$', views.SubjectView.as_view(), name='subject'),
-    url(r'^calendari/$', views.calendar, name='calendar'),
+    url(r'^calendari/$', views.CalendarView.as_view(), name='calendar'),
     url(r'^subscriu/$', views.subscription, name='subscription'),
     url(r'^pmf/$', TemplateView.as_view(template_name='pmf.html'), name='pmf'),
     url(r'^problemes/$', views.ContactView.as_view(), name='contact'),

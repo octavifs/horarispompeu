@@ -28,7 +28,7 @@ from django.http import Http404
 from django.conf import settings
 
 from timetable.models import *
-import timetable.calendar
+from timetable import calendar as calendar_generator
 from timetable.forms import ContactForm
 
 
@@ -128,6 +128,7 @@ class SubjectView(TemplateView):
             'group',
             'group_key',
             'course',
+            'course_key'
         ).distinct()
         degree_course_subjects = {}
         for ds in degree_subjects:
@@ -135,73 +136,59 @@ class SubjectView(TemplateView):
         for ds in degree_subjects:
             degree_course_subjects[ds['degree__name']][ds['course']] = []
         for ds in degree_subjects:
+            ids = "_".join(str(ds.id) for ds in DegreeSubject.objects.filter(
+                degree=ds['degree'],
+                subject=ds['subject'],
+                group_key=ds['group_key'],
+                course_key=ds['course_key']))
+            ds["ids"] = ids
             degree_course_subjects[ds['degree__name']][ds['course']].append(ds)
         return {
             'degree_course_subjects': degree_course_subjects
         }
 
 
-# class CalendarView(TemplateView):
-#     template_name = 'calendar.html'
-#     http_method_names = 'get'
-#
-#     def get_context_data(self, **kwargs):
-#         degree_subject = self.request.GET.getlist("degree_subject")
-#         if not degree_subject:
-#             raise Http404
-#         degree_subject_args = (ds.split("_") for ds in degree_subject)
-#         degree_subject_objects =
+class CalendarView(TemplateView):
+    template_name = 'calendar.html'
 
-def calendar(request):
-    # First, deal with invalid inputs:
-    if (
-        not request.session.get('degree_subject') and
-        not request.POST.getlist('degree_subject')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
-    # Save POST parameters to cookie:
-    if request.method == 'POST':
-        request.session['degree_subject'] = request.POST.getlist('degree_subject')
-    # degree_subjects contains a list with strings with the format
-    # {subject_id}_{group}
-    raw_selected_subjects = request.session['degree_subject']
-    raw_selected_subjects.sort()
-    string_selected_subjects = "\n".join(raw_selected_subjects)
-    # The calendar will have, for its filename, the SHA1 hash of the sorted
-    # pairs of (subject_id, group) returned by the selection form
-    subjects_hash = hashlib.sha1(string_selected_subjects).hexdigest()
-    calendar = None
-    try:
-        calendar = Calendar.objects.get(pk=subjects_hash)
-    except Calendar.DoesNotExist:
-        calendar = Calendar(name=subjects_hash)
-        selected_subjects = \
-            [(lambda (s_id, group): (int(s_id), group))(e.split('_')) for e in
-             request.POST.getlist('degree_subject')]
-        if not selected_subjects:
-            # TODO:
-            # Throw some error when selectedsubjects has no subjects!
-            # or handle it on the subject view (or both)
-            pass
-        q_list = []
-        for subject_id, group in selected_subjects:
-            q = Q(subject=subject_id, group=group, academic_year=academic_year)
-            q_list.append(q)
-        subjects_group_filter = reduce(operator.or_, q_list)
-        lessons = Lesson.objects.filter(subjects_group_filter)
-        degree_subjects = DegreeSubject.objects.filter(subjects_group_filter)
-        calendar.file.save(calendar.name + '.ics',
-                           ContentFile(timetable.calendar.generate(lessons)))
-        calendar.degree_subjects.add(*degree_subjects)
-    finally:
-        context = {
-            'calendar_url': calendar.file.url,
-            'calendar_name': calendar.name,
-        }
-        return render(request, 'calendar.html', context)
+    def get_context_data(self, **kwargs):
+        degree_subject = self.request.REQUEST.getlist("degree_subject") or \
+                         self.request.session.get("degree_subject")
+        if not degree_subject:
+            raise Http404
+        self.request.session["degree_subject"] = degree_subject
+        # Now, get a clear list of required degree_subjects
+        degree_subject_ids = set()
+        for ds in degree_subject:
+            for id in ds.split("_"):
+                degree_subject_ids.add(int(id))
+        #DegreeSubjects Hash
+        degree_subjects_str = " ".join(str(id)
+                                       for id in sorted(degree_subject_ids))
+        degree_subjects_hash = hashlib.sha1(degree_subjects_str).hexdigest()
+        try:
+            calendar = Calendar.objects.get(name=degree_subjects_hash)
+        except Calendar.DoesNotExist:
+            degree_subjects = DegreeSubject.objects.filter(
+                id__in=degree_subject_ids)
+            q_list = []
+            for ds in degree_subjects:
+                q = Q(
+                    subject=ds.subject,
+                    group_key=ds.group_key,
+                    academic_year=settings.ACADEMIC_YEAR)
+                q_list.append(q)
+            lessons_filter = reduce(operator.or_, q_list)
+            lessons = Lesson.objects.filter(lessons_filter)
+            calendar = Calendar(name=degree_subjects_hash, )
+            calendar.file.save(calendar.name + '.ics',
+                ContentFile(calendar_generator.generate(lessons)))
+            calendar.degree_subjects.add(*degree_subjects)
+        finally:
+            return {
+                'calendar_url': calendar.file.url,
+                'calendar_name': calendar.name,
+            }
 
 
 def subscription(request):

@@ -4,7 +4,7 @@ from os import path
 
 DEBUG = True
 
-BASE_DIR = path.join(__file__, "..")
+BASE_DIR = path.abspath(path.join(__file__, "../../"))
 
 TEMPLATE_DEBUG = DEBUG
 

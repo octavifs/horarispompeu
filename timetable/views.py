@@ -52,8 +52,8 @@ class DegreeList(TemplateView):
     template_name = 'degree.html'
 
     def get_context_data(self, **kwargs):
-        faculties = self.request.REQUEST.getlist("faculty") or \
-                    self.request.session.get("faculty")
+        faculties = (self.request.REQUEST.getlist("faculty") or
+                     self.request.session.get("faculty"))
         if not faculties:
             raise Http404
         self.request.session["faculty"] = faculties
@@ -61,14 +61,13 @@ class DegreeList(TemplateView):
         return {'degree_list': queryset}
 
 
-
 class CourseList(TemplateView):
     template_name = 'course.html'
 
     def get_context_data(self, **kwargs):
         queryset = DegreeSubject.objects.all()
-        degrees = self.request.REQUEST.getlist("degree") or \
-                  self.request.session.get("degree")
+        degrees = (self.request.REQUEST.getlist("degree") or
+                   self.request.session.get("degree"))
         if not degrees:
             raise Http404
         self.request.session["degree"] = degrees
@@ -97,8 +96,8 @@ class SubjectView(TemplateView):
     template_name = 'subject.html'
 
     def get_context_data(self, **kwargs):
-        degree_course = self.request.REQUEST.getlist('degree_course') or \
-                        self.request.session.get('degree_course')
+        degree_course = (self.request.REQUEST.getlist('degree_course') or
+                         self.request.session.get('degree_course'))
         if not degree_course:
             raise Http404
         # Store in cookies
@@ -149,8 +148,8 @@ class CalendarView(TemplateView):
     template_name = 'calendar.html'
 
     def get_context_data(self, **kwargs):
-        degree_subject = self.request.REQUEST.getlist("degree_subject") or \
-                         self.request.session.get("degree_subject")
+        degree_subject = (self.request.REQUEST.getlist("degree_subject") or
+                          self.request.session.get("degree_subject"))
         if not degree_subject:
             raise Http404
         self.request.session["degree_subject"] = degree_subject
@@ -163,6 +162,7 @@ class CalendarView(TemplateView):
         degree_subjects_str = " ".join(str(id)
                                        for id in sorted(degree_subject_ids))
         degree_subjects_hash = hashlib.sha1(degree_subjects_str).hexdigest()
+        calendar = None
         try:
             calendar = Calendar.objects.get(name=degree_subjects_hash)
         except Calendar.DoesNotExist:
@@ -179,11 +179,12 @@ class CalendarView(TemplateView):
             lessons = Lesson.objects.filter(lessons_filter)
             calendar = Calendar(name=degree_subjects_hash, )
             calendar.file.save(calendar.name + '.ics',
-                ContentFile(ical.generate(lessons)))
+                               ContentFile(ical.generate(lessons)))
             calendar.degree_subjects.add(*degree_subjects)
         finally:
             return {
-                'calendar_url': calendar.file.url,
+                'calendar_url': self.request.build_absolute_uri(
+                    calendar.file.url),
                 'calendar_name': calendar.name,
             }
 
@@ -203,7 +204,8 @@ def subscription(request):
     password = request.POST["password"]
     calendar = request.POST["calendar"]
     result = subprocess.call(
-        [settings.PHANTOMJS_BIN, settings.AUTO_SUBSCRIPTION_SCRIPT, email, password, calendar])
+        [settings.PHANTOMJS_BIN, settings.AUTO_SUBSCRIPTION_SCRIPT, email,
+         password, calendar])
     return render(request, 'subscription_result.html', {'result': result})
 
 

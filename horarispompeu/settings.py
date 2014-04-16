@@ -185,6 +185,9 @@ LOGGING = {
     }
 }
 
+# Backup to S3
+S3_BACKUP = False
+
 # Set up email subject prefix.
 EMAIL_SUBJECT_PREFIX = '[HP] '
 

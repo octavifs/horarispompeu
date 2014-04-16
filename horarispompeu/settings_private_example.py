@@ -38,7 +38,7 @@ PHANTOMJS_BIN = "/path/to/bin/phantomjs"
 ##############
 # S3 Backups #
 ##############
-S3_BACKUP = True | False
+S3_BACKUP = True
 AWS_ACCESS_KEY = 'some string'
 AWS_SECRET_KEY = 'some string'
 S3_BUCKET = 'somebucket'

@@ -1,24 +1,23 @@
 # encoding: utf-8
 # Django settings for horarispompeu project.
+from os import path
 
 DEBUG = True
-# Sets up which calendars should be parsed
-TERM = "2n Trimestre"
-ACADEMIC_YEAR = "2013 - 2014"
+
+BASE_DIR = path.join(__file__, "..")
 
 TEMPLATE_DEBUG = DEBUG
 
-ADMINS = (
-    ('Octavi Font', 'tavifont@gmail.com'),
+ADMINS = [
     # ('Your Name', 'your_email@example.com'),
-)
+]
 
 MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'resources/horaris.sqlite',  # Or path to database file if using sqlite3.
+        'NAME': path.join(BASE_DIR, 'resources/horaris.sqlite'),  # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': '',
         'PASSWORD': '',
@@ -32,9 +31,6 @@ DATABASES = {
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "horarispompeu.com",
-    "www.horarispompeu.com",
-    "193.145.51.3",
 ]
 
 # Local time zone for this installation. Choices can be found here:
@@ -51,41 +47,37 @@ SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = False
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
-USE_L10N = True
+USE_L10N = False
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = 'resources/calendar/'
+MEDIA_ROOT = path.join(BASE_DIR, 'resources/calendar/')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = 'https://www.horarispompeu.com/calendar/'
+MEDIA_URL = '/calendar/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = 'resources/static/'
+STATIC_ROOT = path.join(BASE_DIR, 'resources/static/')
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
 STATIC_URL = '/static/'
 
-# Timetable root. Where previous timetable sources (.html from ESUP) will be
-# stored.
-TIMETABLE_ROOT = 'resources/timetable'
-
 # Additional locations of static files
 STATICFILES_DIRS = (
-    'timetable/static',
+    path.join(BASE_DIR, 'timetable/static'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -141,7 +133,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    'timetable/templates',
+    path.join(BASE_DIR, 'timetable/templates'),
 )
 
 INSTALLED_APPS = (
@@ -200,8 +192,7 @@ EMAIL_SUBJECT_PREFIX = '[HP] '
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Random backgrounds
-from os.path import join
-BACKGROUND_IMAGES_PREFIX = join(STATIC_URL, "images")
+BACKGROUND_IMAGES_PREFIX = path.join(STATIC_URL, "images")
 BACKGROUND_IMAGES = [
     ("IMG_20140103_112135.jpg", "la Xemeneia. Ulldeter (Ripollès)."),
     ("IMG_20140103_111114.jpg", "la Xemeneia. Ulldeter (Ripollès)."),
@@ -210,31 +201,4 @@ BACKGROUND_IMAGES = [
     ("IMG_20140202_110352.jpg", "cresta del Matagalls, les Agudes al fons. El Montseny (Osona)."),
 ]
 
-###################################
-# VARS TO ADD AS PRIVATE SETTINGS #
-###################################
-
-# Email
-# EMAIL_USE_TLS = True | False
-# EMAIL_PORT = 587
-# EMAIL_HOST = 'smtp.hostname.com'
-# EMAIL_HOST_USER = 'user@hostname.com'
-# EMAIL_HOST_PASSWORD = 'secretPassword'
-# DEFAULT_FROM_EMAIL = 'user@hostname.com'
-# SERVER_EMAIL = 'user@hostname.com'
-
-# PhantomJS
-# AUTO_SUBSCRIPTION_SCRIPT = "/path/to/gcal_addICS.js"
-# PHANTOMJS_BIN = "/path/to/bin/phantomjs"
-
-# S3 Backups
-# S3_BACKUP = True | False
-# AWS_ACCESS_KEY = 'some string'
-# AWS_SECRET_KEY = 'some string'
-# S3_BUCKET = 'somebucket'
-
-# Supervisord and Nginx config paths
-# SUPERVISORD_CONFIG = '/etc/supervisor/conf.d/someconf.conf'
-# NGINX_CONFIG = '/etc/nginx/sites-enabled/someconf'
-# Import private settings
-from settings_private import *
+AUTO_SUBSCRIPTION_SCRIPT = path.join(BASE_DIR, "phantomjs/gcal_addICS.js")

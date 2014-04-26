@@ -202,6 +202,8 @@ BACKGROUND_IMAGES = [
     ("IMG_20140103_134025.jpg", "Coma del Freser, des de Bastiments. Ulldeter (Ripollès)."),
     ("IMG_20131231_122653.jpg", "Pedraforca i Comabona, des del refugi del Rebost. Serra del Cadí (Berguedà)."),
     ("IMG_20140202_110352.jpg", "cresta del Matagalls, les Agudes al fons. El Montseny (Osona)."),
+    ("IMG_20140423_144522.jpg", "Planell d'Aigüestortes. Parc Nacional d'Aigüestortes (Alta Ribagorça)"),
+    ("IMG_20140424_104243.jpg", "Pantà de Cavallers. Parc Nacional d'Aigüestortes (Alta Ribagorça)"),
 ]
 
 AUTO_SUBSCRIPTION_SCRIPT = path.join(BASE_DIR, "phantomjs/gcal_addICS.js")

@@ -17,7 +17,7 @@
   {% csrf_token %}
   <div class="form-group" data-toggle="buttons">
   {% for faculty in faculty_list%}
-      <label class="btn btn-default col-xs-12 col-md-6 col-lg-4">
+      <label class="btn btn-default col-xs-12 col-md-6">
         <input type="checkbox" name="faculty" value="{{ faculty.pk }}">{{ faculty.name }}</input>
       </label>
   {% endfor %}

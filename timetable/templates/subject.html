@@ -33,7 +33,7 @@
           </div>
           <div class="form-group" data-toggle="buttons">
           {% for degree_subject in degree_subjects %}
-              <label class="btn btn-default col-xs-12 col-md-6 col-lg-4" title="{{ degree_subject.subject__name }} {{ degree_subject.group }}">
+              <label class="btn btn-default col-xs-12 col-md-6" title="{{ degree_subject.subject__name }} {{ degree_subject.group }}">
                   <input type="checkbox" name="degree_subject" value="{{ degree_subject.ids }}">{{ degree_subject.subject__name }} <em>{{degree_subject.group}}</em></input>
             </label>
           {% endfor %}

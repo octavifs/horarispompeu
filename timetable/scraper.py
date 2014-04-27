@@ -1,5 +1,7 @@
 import re
 from datetime import datetime
+from Queue import Queue
+from threading import Thread
 
 from bs4 import BeautifulSoup
 import requests
@@ -342,5 +344,17 @@ def populate_lessons(degree_subjects):
                 entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
                 location=raw_lesson["aula"]).save()
 
+    tasks = Queue()
     for ds in degree_subjects:
-        store_ds_lessons(ds)
+        tasks.put(ds)
+    
+    def worker():
+        while not tasks.empty():
+            ds = tasks.get()
+            store_ds_lessons(ds)
+            tasks.task_done()
+
+    for i in xrange(10):
+        Thread(None, worker).start()
+
+    tasks.join()

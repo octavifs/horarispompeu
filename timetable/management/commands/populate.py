@@ -7,12 +7,9 @@ from timetable.models import DegreeSubject
 
 
 class Command(NoArgsCommand):
-    help = ("Update DB. Update lessons and rewrite calendars. Only selects "
-            "calendars from current academic year and term, if defined")
+    help = "Populate DB. Slow. Run this on setup"
 
     def handle_noargs(self, **options):
-        if not settings.ACADEMIC_YEAR or not settings.TERM:
-            raise ValueError("ACADEMIC_YEAR or TERM undefined in settings.")
         self.stdout.write("Populating Faculties, Degrees and Subjects. "
                           "This will take a while...\n")
         scraper.populate_db()

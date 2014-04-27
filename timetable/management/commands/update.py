@@ -12,11 +12,12 @@ from timetable.models import DegreeSubject, Calendar, Lesson
 
 
 class Command(NoArgsCommand):
-    help = "Populate DB. Slow. Run this on setup"
+    help = ("Update DB. Update lessons and rewrite calendars. Only selects "
+            "calendars from current academic year and term, if defined")
 
     def handle_noargs(self, **options):
-        if not settings.ACADEMIC_YEAR or not settings.TERM:
-            raise ValueError("ACADEMIC_YEAR or TERM undefined in settings.")
+        if not settings.ACADEMIC_YEAR and not settings.TERM:
+            raise ValueError("ACADEMIC_YEAR and TERM undefined in settings.")
         # Get all DegreeSubjects which have an active calendar AND are currently
         # active due to academic year and term
         degree_subjects = DegreeSubject.objects.exclude(calendar=None).filter(

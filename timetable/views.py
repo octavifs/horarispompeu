@@ -17,194 +17,176 @@ from __future__ import unicode_literals
 import operator
 import hashlib
 import subprocess
-from functools import wraps
-from random import randrange
-from os.path import join
 
-from django.shortcuts import render as render_django
-from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from django.core.files.base import ContentFile
+from django.views.generic import TemplateView, FormView
+from django.http import Http404
 
 from django.conf import settings
+
 from timetable.models import *
-import timetable.calendar
+from timetable import ical
 from timetable.forms import ContactForm
 
 
-
-def render(request, template_name, dictionary=None, *args, **kwargs):
-    """
-    Redefined render function. Populates the dictionary with some recurrent
-    entries in the context.
-    """
-    base_dict = {
-        'term': settings.TERM,
-        'background_img': request.session.get('background_img'),
-        'background_caption': request.session.get('background_caption'),
-    }
-    if isinstance(dictionary, dict):
-        dictionary.update(base_dict)
-    else:
-        dictionary = base_dict
-    return render_django(request, template_name, dictionary, *args, **kwargs)
-
-def background_decorator(view):
-    @wraps(view)
-    def wrapper(request):
-        background_img = request.session.get('background_img')
-        background_caption = request.session.get('background_caption')
-        if not background_img or not background_caption:
-            idx = randrange(len(settings.BACKGROUND_IMAGES))
-            entry = settings.BACKGROUND_IMAGES[idx]
-            request.session['background_img'] = join(
-                settings.BACKGROUND_IMAGES_PREFIX, entry[0])
-            request.session['background_caption'] = entry[1]
-        return view(request)
-    return wrapper
+# TemplateView will also have a dispatch handler for POST requests
+# (same function as GET)
+# See the source for dispatch:
+# https://github.com/django/django/blob/master/django/views/generic/base.py#L79
+# TemplateView only defines a get handler by default
+TemplateView.post = TemplateView.get
 
 
-# The view start here
-@background_decorator
-def index(request):
-    return render(request, 'index.html')
+class FacultyList(TemplateView):
+    template_name = 'faculty.html'
+
+    def get_context_data(self, **kwargs):
+        faculties = (d.faculty.id for d in Degree.objects.all())
+        return {'faculty_list': Faculty.objects.filter(id__in=faculties)}
 
 
-@background_decorator
-def degree(request):
-    faculty = Faculty.objects.get(pk='ESUP')
-    degree_list = Degree.objects.filter(faculty=faculty)
-    context = {'degree_list': degree_list}
-    return render(request, 'degree.html', context)
+class DegreeList(TemplateView):
+    template_name = 'degree.html'
+
+    def get_context_data(self, **kwargs):
+        faculties = (self.request.REQUEST.getlist("faculty") or
+                     self.request.session.get("faculty"))
+        if not faculties:
+            raise Http404
+        self.request.session["faculty"] = faculties
+        queryset = Degree.objects.filter(faculty__in=faculties)
+        return {'degree_list': queryset}
 
 
-@background_decorator
-def year(request):
-    # First, deal with invalid inputs:
-    if (
-        not request.session.get('degree') and
-        not request.POST.getlist('degree')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Save POST parameters to cookie
-    if request.method == 'POST':
-        request.session['degree'] = request.POST.getlist('degree')
-    # Once input is seemingly valid (the list may still contain invalid degree ids), retrieve years and groups:
-    degree_and_group_list = DegreeSubject.objects.filter(
-        degree__in=request.session['degree']
-    ).order_by(
-        'degree',
-        'year',
-        'group'
-    ).values(
-        'degree',
-        'degree__name',
-        'year',
-        'group',
-    ).distinct()
-    degree_list = {}
-    for entry in degree_and_group_list:
-        degree_list.setdefault(entry['degree__name'], []).append(entry)
-    context = {'degree_list': degree_list}
-    return render(request, 'year.html', context)
+class CourseList(TemplateView):
+    template_name = 'course.html'
+
+    def get_context_data(self, **kwargs):
+        queryset = DegreeSubject.objects.all()
+        degrees = (self.request.REQUEST.getlist("degree") or
+                   self.request.session.get("degree"))
+        if not degrees:
+            raise Http404
+        self.request.session["degree"] = degrees
+        degree_and_group_list = queryset.filter(
+            degree__in=degrees,
+            academic_year=settings.ACADEMIC_YEAR,
+        ).order_by(
+            'degree',
+            'course_key',
+            'group'
+        ).values(
+            'degree',
+            'degree__name',
+            'course',
+            'course_key',
+            'group',
+            'group_key'
+        ).distinct()
+        degree_list = {}
+        for entry in degree_and_group_list:
+            degree_list.setdefault(entry['degree__name'], []).append(entry)
+        return {'degree_list': degree_list}
 
 
-@background_decorator
-def subject(request):
-    # First, deal with invalid inputs:
-    if (
-        not request.session.get('degree_year') and
-        not request.POST.getlist('degree_year')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
-    # Save POST parameters to cookie
-    if request.method == 'POST':
-        request.session['degree_year'] = request.POST.getlist('degree_year')
-    degree_year = request.session['degree_year']
-    courses = []
-    for entry in degree_year:
-        degree_id, course, group = entry.split('_')
-        courses.append((degree_id, course, group))
-    q_list = []
-    for degree, course, group in courses:
-        q = Q(degree=degree, year=course, group=group,
-              academic_year=academic_year)
-        q_list.append(q)
-    degree_subjects = DegreeSubject.objects.filter(
-        reduce(operator.or_, q_list)
-    ).order_by(
-        'year',
-        'subject__name',
-    ).values(
-        'subject',
-        'subject__name',
-        'group',
-        'year'
-    ).distinct()
-    year_degree_subjects = {}
-    for degree_subject in degree_subjects:
-        year_degree_subjects.setdefault(degree_subject['year'], []).append(degree_subject)
-    context = {
-        'year_degree_subjects': sorted(year_degree_subjects.iteritems()),
-    }
-    return render(request, 'subject.html', context)
+class SubjectView(TemplateView):
+    template_name = 'subject.html'
 
-
-@background_decorator
-def calendar(request):
-    # First, deal with invalid inputs:
-    if (
-        not request.session.get('degree_subject') and
-        not request.POST.getlist('degree_subject')
-    ):
-        # This will raise a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Once input is seemingly valid render the view:
-    academic_year = AcademicYear.objects.get(year=settings.ACADEMIC_YEAR)
-    # Save POST parameters to cookie:
-    if request.method == 'POST':
-        request.session['degree_subject'] = request.POST.getlist('degree_subject')
-    # degree_subjects contains a list with strings with the format
-    # {subject_id}_{group}
-    raw_selected_subjects = request.session['degree_subject']
-    raw_selected_subjects.sort()
-    string_selected_subjects = "\n".join(raw_selected_subjects)
-    # The calendar will have, for its filename, the SHA1 hash of the sorted
-    # pairs of (subject_id, group) returned by the selection form
-    subjects_hash = hashlib.sha1(string_selected_subjects).hexdigest()
-    calendar = None
-    try:
-        calendar = Calendar.objects.get(pk=subjects_hash)
-    except Calendar.DoesNotExist:
-        calendar = Calendar(name=subjects_hash)
-        selected_subjects = \
-            [(lambda (s_id, group): (int(s_id), group))(e.split('_')) for e in
-             request.POST.getlist('degree_subject')]
-        if not selected_subjects:
-            # TODO:
-            # Throw some error when selectedsubjects has no subjects!
-            # or handle it on the subject view (or both)
-            pass
+    def get_context_data(self, **kwargs):
+        degree_course = (self.request.REQUEST.getlist('degree_course') or
+                         self.request.session.get('degree_course'))
+        if not degree_course:
+            raise Http404
+        # Store in cookies
+        self.request.session['degree_course'] = degree_course
+        courses = []
+        for entry in degree_course:
+            degree_id, course_key, group_key = entry.split('_')
+            courses.append((degree_id, course_key, group_key))
         q_list = []
-        for subject_id, group in selected_subjects:
-            q = Q(subject=subject_id, group=group, academic_year=academic_year)
+        for degree, course, group in courses:
+            q = Q(degree=degree, course_key=course, group_key=group,
+                  academic_year=settings.ACADEMIC_YEAR)
             q_list.append(q)
-        subjects_group_filter = reduce(operator.or_, q_list)
-        lessons = Lesson.objects.filter(subjects_group_filter)
-        degree_subjects = DegreeSubject.objects.filter(subjects_group_filter)
-        calendar.file.save(calendar.name + '.ics',
-                           ContentFile(timetable.calendar.generate(lessons)))
-        calendar.degree_subjects.add(*degree_subjects)
-    finally:
-        context = {
-            'calendar_url': calendar.file.url,
-            'calendar_name': calendar.name,
+        degree_subjects = DegreeSubject.objects.filter(
+            reduce(operator.or_, q_list)
+        ).order_by(
+            'course',
+            'subject__name',
+        ).values(
+            'degree',
+            'degree__name',
+            'subject',
+            'subject__name',
+            'group',
+            'group_key',
+            'course',
+            'course_key'
+        ).distinct()
+        degree_course_subjects = {}
+        for ds in degree_subjects:
+            degree_course_subjects[ds['degree__name']] = {}
+        for ds in degree_subjects:
+            degree_course_subjects[ds['degree__name']][ds['course']] = []
+        for ds in degree_subjects:
+            ids = "_".join(str(ds.id) for ds in DegreeSubject.objects.filter(
+                degree=ds['degree'],
+                subject=ds['subject'],
+                group_key=ds['group_key'],
+                course_key=ds['course_key']))
+            ds["ids"] = ids
+            degree_course_subjects[ds['degree__name']][ds['course']].append(ds)
+        return {
+            'degree_course_subjects': degree_course_subjects
         }
-        return render(request, 'calendar.html', context)
+
+
+class CalendarView(TemplateView):
+    template_name = 'calendar.html'
+
+    def get_context_data(self, **kwargs):
+        degree_subject = (self.request.REQUEST.getlist("degree_subject") or
+                          self.request.session.get("degree_subject"))
+        if not degree_subject:
+            raise Http404
+        self.request.session["degree_subject"] = degree_subject
+        # Now, get a clear list of required degree_subjects
+        degree_subject_ids = set()
+        for ds in degree_subject:
+            for id in ds.split("_"):
+                degree_subject_ids.add(int(id))
+        #DegreeSubjects Hash
+        degree_subjects_str = " ".join(str(id)
+                                       for id in sorted(degree_subject_ids))
+        degree_subjects_hash = hashlib.sha1(degree_subjects_str).hexdigest()
+        calendar = None
+        try:
+            calendar = Calendar.objects.get(name=degree_subjects_hash)
+        except Calendar.DoesNotExist:
+            degree_subjects = DegreeSubject.objects.filter(
+                id__in=degree_subject_ids)
+            q_list = []
+            for ds in degree_subjects:
+                q = Q(
+                    subject=ds.subject,
+                    group_key=ds.group_key,
+                    academic_year=settings.ACADEMIC_YEAR)
+                q_list.append(q)
+            lessons_filter = reduce(operator.or_, q_list)
+            lessons = Lesson.objects.filter(lessons_filter)
+            calendar = Calendar(name=degree_subjects_hash, )
+            calendar.file.save(calendar.name + '.ics',
+                               ContentFile(ical.generate(lessons)))
+            calendar.degree_subjects.add(*degree_subjects)
+        finally:
+            return {
+                'calendar_url': self.request.build_absolute_uri(
+                    calendar.file.url),
+                'calendar_name': calendar.name,
+            }
 
 
 def subscription(request):
@@ -222,36 +204,22 @@ def subscription(request):
     password = request.POST["password"]
     calendar = request.POST["calendar"]
     result = subprocess.call(
-        [settings.PHANTOMJS_BIN, settings.AUTO_SUBSCRIPTION_SCRIPT, email, password, calendar])
+        [settings.PHANTOMJS_BIN, settings.AUTO_SUBSCRIPTION_SCRIPT, email,
+         password, calendar])
     return render(request, 'subscription_result.html', {'result': result})
 
 
-@background_decorator
-def pmf(request):
-    return render(request, 'pmf.html')
+class ContactView(FormView):
+    form_class = ContactForm
+    success_url = reverse_lazy('thanks')
+    template_name = 'contact.html'
 
+    def form_valid(self, form):
+        subject = '[HP] [SUPORT] {}'.format(form.cleaned_data['subject'])
+        message = form.cleaned_data['message']
+        sender = form.cleaned_data['sender']
+        recipients = ['horarispompeu@gmail.com']
+        from django.core.mail import send_mail
+        send_mail(subject, message, sender, recipients)
 
-@background_decorator
-def contact(request):
-    if request.method == 'POST':  # If the form has been submitted...
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            subject = '[HP] [SUPORT] {}'.format(form.cleaned_data['subject'])
-            message = form.cleaned_data['message']
-            sender = form.cleaned_data['sender']
-            recipients = ['horarispompeu@gmail.com']
-
-            from django.core.mail import send_mail
-            send_mail(subject, message, sender, recipients)
-            return HttpResponseRedirect('/gracies/')
-    else:
-        form = ContactForm()
-
-    return render(request, 'contact.html', {
-        'form': form,
-    })
-
-
-@background_decorator
-def thanks(request):
-    return render(request, 'thanks.html')
+        return super(ContactView, self).form_valid(form)

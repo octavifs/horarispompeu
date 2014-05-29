@@ -3,6 +3,7 @@
 {% block navbar %}
 <div class="navbar-collapse collapse">
   <ul class="nav navbar-nav breadcrumbs">
+    <li><a href="/facultat">Facultat</a></li>
     <li><a href="/grau">Grau</a></li>
     <li><a href="/curs">Curs</a></li>
     <li><a href="#">Assignatures</a></li>
@@ -22,17 +23,22 @@
     </div><!-- /input-group -->
     <form action="{% url 'calendar' %}" method="post" class="form-horizontal" role="form">
     {% csrf_token %}
-    {% for year, degree_subjects in year_degree_subjects %}
+    {% for degree, course_subjects in degree_course_subjects.iteritems %}
         <div class="form-group" data-toggle="buttons-checkbox">
-        <h2>{{ year }}</h2>
+        <h2>{{ degree }}</h2>
         </div>
-        <div class="form-group" data-toggle="buttons">
-        {% for degree_subject in degree_subjects %}
-            <label class="btn btn-default col-xs-12 col-md-6 col-lg-4" title="{{ degree_subject.subject__name }} {{degree_subject.group}}">
-                <input type="checkbox" name="degree_subject" value="{{ degree_subject.subject  }}_{{ degree_subject.group }}">{{ degree_subject.subject__name }} <em>{{degree_subject.group}}</em></input>
-          </label>
+        {% for course, degree_subjects in course_subjects.iteritems %}
+          <div class="form-group" data-toggle="buttons-checkbox">
+          <h3>{{ course }}</h3>
+          </div>
+          <div class="form-group" data-toggle="buttons">
+          {% for degree_subject in degree_subjects %}
+              <label class="btn btn-default col-xs-12 col-md-6" title="{{ degree_subject.subject__name }} {{ degree_subject.group }}">
+                  <input type="checkbox" name="degree_subject" value="{{ degree_subject.ids }}">{{ degree_subject.subject__name }} <em>{{degree_subject.group}}</em></input>
+            </label>
+          {% endfor %}
+          </div>
         {% endfor %}
-        </div>
     {% endfor %}
     <div class="form-group">
         <button type="submit" class="btn btn-lg btn-danger">Crea el calendari <span class="glyphicon glyphicon-calendar"></span></button>

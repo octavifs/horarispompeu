@@ -3,6 +3,7 @@
 {% block navbar %}
 <div class="navbar-collapse collapse">
   <ul class="nav navbar-nav breadcrumbs">
+    <li><a href="/facultat">Facultat</a></li>
     <li><a href="/grau">Grau</a></li>
     <li><a href="#">Curs</a></li>
   </ul>
@@ -18,14 +19,14 @@
 
   <form action="{% url 'subject' %}" method="post" class="form-horizontal" role="form">
   {% csrf_token %}
-  {% for degree, year_list in degree_list.iteritems %}
+  {% for degree, course_list in degree_list.iteritems %}
   <div class="form-group" data-toggle="buttons">
       <h2>{{ degree }}</h2>    
   </div>
   <div class="form-group" data-toggle="buttons">
-      {% for year in year_list %}
+      {% for course in course_list %}
         <label class="btn btn-default col-xs-12 col-md-6 col-lg-4">
-          <input type="checkbox" name="degree_year" value="{{ year.degree }}_{{ year.year }}_{{ year.group }}">{{ year.year }} {{ year.group }}</input>
+          <input type="checkbox" name="degree_course" value="{{ course.degree }}_{{ course.course_key }}_{{ course.group_key }}">{{ course.course }} {{ course.group }}</input>
         </label>
       {% endfor %}
   </div>

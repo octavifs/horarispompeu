@@ -3,28 +3,27 @@
 {% block navbar %}
  <div class="navbar-collapse collapse">
   <ul class="nav navbar-nav breadcrumbs">
-    <li><a href="/facultat">Facultat</a></li>
-    <li><a href="#">Grau</a></li>
+    <li><a href="#">Facultat</a></li>
   </ul>
 </div><!-- navbar-collapse -->
 {% endblock %}
 
 {% block content %}
-  <h1>Quins graus curses?</h1>
+  <h1>Quina és la teva facultat?</h1>
 
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <form action="{% url 'course' %}" method="post" class="form-horizontal" role="form">
+  <form action="{% url 'degree' %}" method="post" class="form-horizontal" role="form">
   {% csrf_token %}
   <div class="form-group" data-toggle="buttons">
-  {% for degree in degree_list %}
+  {% for faculty in faculty_list%}
       <label class="btn btn-default col-xs-12 col-md-6">
-        <input type="checkbox" name="degree" value="{{ degree.id }}">{{ degree.name }}</input>
+        <input type="checkbox" name="faculty" value="{{ faculty.pk }}">{{ faculty.name }}</input>
       </label>
   {% endfor %}
   </div>
   <div class="form-group">
-    <button type="submit" class="btn btn-lg btn-danger">Escull curs <span class="glyphicon glyphicon-chevron-right"></span></button>
+    <button type="submit" class="btn btn-lg btn-danger">Escull grau <span class="glyphicon glyphicon-chevron-right"></span></button>
   </div>
   </form>
 {% endblock %}

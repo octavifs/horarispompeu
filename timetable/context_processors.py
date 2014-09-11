@@ -14,5 +14,6 @@ def background(request):
         background_caption = request.session["background_caption"] = entry[1]
     return {
         "background_img": background_img,
-        "background_caption": background_caption
+        "background_caption": background_caption,
+        "term": settings.TERM_STRING
     }

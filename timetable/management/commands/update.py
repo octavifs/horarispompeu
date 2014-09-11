@@ -23,12 +23,12 @@ class Command(NoArgsCommand):
         degree_subjects = DegreeSubject.objects.exclude(calendar=None).filter(
             academic_year=settings.ACADEMIC_YEAR,
             term_key=settings.TERM
-        )
+        ).distinct()
         self.stdout.write("Updating lessons. This will take a while...\n")
         scraper.populate_lessons(degree_subjects)
         self.stdout.write("DONE!\n")
         self.stdout.write("Updating calendars. This may also take a while...\n")
-        calendars = Calendar.objects.filter(degree_subjects__in=degree_subjects)
+        calendars = Calendar.objects.filter(degree_subjects__in=degree_subjects).distinct()
         for calendar in calendars:
             q_list = []
             for ds in calendar.degree_subjects.all():

@@ -297,6 +297,7 @@ def populate_lessons(degree_subjects):
         \{\s*
         title:\s*\"(?P<title>.*)\",\s*
         aula:\s*\"(?P<aula>.*)\",\s*
+        aulaDesc:\s*\"(?P<aulaDesc>.*)\",\s*
         tipologia:\s*\"(?P<tipologia>.*)\",\s*
         grup:\s*\"(?P<grup>.*)\",\s*
         start:\s*\"(?P<start>.*)\",\s*

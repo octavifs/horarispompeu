@@ -204,6 +204,8 @@ BACKGROUND_IMAGES = [
     ("IMG_20140202_110352.jpg", "cresta del Matagalls, les Agudes al fons. El Montseny (Osona)."),
     ("IMG_20140423_144522.jpg", "Planell d'Aigüestortes. Parc Nacional d'Aigüestortes (Alta Ribagorça)"),
     ("IMG_20140424_104243.jpg", "Pantà de Cavallers. Parc Nacional d'Aigüestortes (Alta Ribagorça)"),
+    ("20140907_100840_HDR.jpg", "La vall d'en Bas. Puigsacalm (la Garrotxa)"),
+    ("20140907_132333_HDR.jpg", "flora al Puigsacalm (la Garrotxa)")
 ]
 
 AUTO_SUBSCRIPTION_SCRIPT = path.join(BASE_DIR, "phantomjs/gcal_addICS.js")

@@ -28,7 +28,7 @@ class Command(NoArgsCommand):
         scraper.populate_lessons(degree_subjects)
         self.stdout.write("DONE!\n")
         self.stdout.write("Updating calendars. This may also take a while...\n")
-        calendars = Calendar.objects.filter(degree_subjects__in=degree_subjects).distinct()
+        calendars = Calendar.objects.filter(degree_subjects__in=degree_subjects)
         for calendar in calendars:
             q_list = []
             for ds in calendar.degree_subjects.all():

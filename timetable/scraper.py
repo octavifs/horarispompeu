@@ -311,7 +311,10 @@ def populate_lessons(degree_subjects):
         # from 01-09-2014 until 01-07-2015
         lessons = SESSION.get('http://gestioacademica.upf.edu/pds/consultaPublica/'
                               '[Ajax]selecionarRangoHorarios?start=1412114400&end=1438380000')
-        raw_lessons = lessons.json()
+        try:
+            raw_lessons = lessons.json()
+        except ValueError:
+            return
         # Delete previously stored lessons related to that degreesubject
         # this way we make sure we only keep the latest data
         Lesson.objects.filter(
@@ -320,7 +323,7 @@ def populate_lessons(degree_subjects):
             academic_year=ds.academic_year,
             term=ds.term).delete()
         for raw_lesson in raw_lessons:
-            if raw_lesson['festivoNoLectivo'] == 'true':
+            if raw_lesson['festivoNoLectivo']:
                 continue
             Lesson(
                 subject=ds.subject,

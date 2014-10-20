@@ -291,22 +291,6 @@ def populate_lessons(degree_subjects):
     """
     # Set up session cookies
     init_session()
-    # Compile regex
-    # This regex matches a JS Object found in the retrieved HTML
-    lesson_re = re.compile(r"""
-        \{\s*
-        title:\s*\"(?P<title>.*)\",\s*
-        aula:\s*\"(?P<aula>.*)\",\s*
-        aulaDesc:\s*\"(?P<aulaDesc>.*)\",\s*
-        tipologia:\s*\"(?P<tipologia>.*)\",\s*
-        grup:\s*\"(?P<grup>.*)\",\s*
-        start:\s*\"(?P<start>.*)\",\s*
-        end:\s*\"(?P<end>.*)\",\s*
-        className:\s*\"(?P<className>.*)\",\s*
-        festivoNoLectivo:\s*(?P<festivoNoLectivo>true|false),\s*
-        publicarObservacion:\s*\"(?P<publicarObservacion>.*)\",\s*
-        observacion:\s*\"(?P<observacion>.*)\"\s*
-        \}""", re.VERBOSE)
 
     def store_ds_lessons(ds):
         data = {
@@ -320,9 +304,14 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
+        # This sets session, necessary to prepare next request (I think)
         r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
                          'look[conpub]MostrarPubHora', data=data)
-        raw_lessons = (m.groupdict() for m in lesson_re.finditer(r.text))
+        # This is a quick hack, since start and end date are hardcoded to 2014
+        # from 01-09-2014 until 01-07-2015
+        lessons = SESSION.get('http://gestioacademica.upf.edu/pds/consultaPublica/'
+                              '[Ajax]selecionarRangoHorarios?start=1412114400&end=1438380000')
+        raw_lessons = lessons.json()
         # Delete previously stored lessons related to that degreesubject
         # this way we make sure we only keep the latest data
         Lesson.objects.filter(

@@ -1,9 +1,11 @@
 from datetime import datetime
 from Queue import Queue
 from threading import Thread, local
+from time import mktime
 
 from bs4 import BeautifulSoup
 import requests
+from django.conf import settings
 from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
     Subject, Lesson
 
@@ -306,10 +308,14 @@ def populate_lessons(degree_subjects):
         # This sets session, necessary to prepare next request
         r = THREAD.session.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
                                 'look[conpub]MostrarPubHora', data=data)
-        # This is a quick hack, since start and end date are hardcoded to 2014
-        # from 01-09-2014 until 01-07-2015
-        lessons = THREAD.session.get('http://gestioacademica.upf.edu/pds/consultaPublica/'
-                                     '[Ajax]selecionarRangoHorarios?start=1412114400&end=1438380000')
+        # Date range is from 1st september to 1st of july. It covers the whole academic year so
+        # 1 request per subject is enough
+        start_time = int(mktime(datetime(settings.YEAR, 9, 1).timetuple()))
+        end_time = int(mktime(datetime(settings.YEAR + 1, 7, 1).timetuple()))
+        lessons = THREAD.session.get(
+            'http://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
+            '?start=%d&end=%d' % (start_time, end_time)
+        )
         raw_lessons = lessons.json()
         # Delete previously stored lessons related to that degreesubject
         # this way we make sure we only keep the latest data

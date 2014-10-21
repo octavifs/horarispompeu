@@ -13,10 +13,14 @@ ALLOWED_HOSTS.extend([
 #########################
 # Current year and term #
 #########################
+# Year
+YEAR = 2014
 # Use a valid AcademicYear.name
 ACADEMIC_YEAR = "2013 - 2014"
 # Use either 1, 2 or 3
 TERM = "3"
+# This will appear in HP header and HP ics calendars
+TERM_STRING = '1r Trimestre, 2014-15'
 
 
 ############################

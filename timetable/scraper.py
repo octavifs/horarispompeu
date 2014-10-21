@@ -1,7 +1,6 @@
-import re
 from datetime import datetime
 from Queue import Queue
-from threading import Thread
+from threading import Thread, local
 
 from bs4 import BeautifulSoup
 import requests
@@ -12,6 +11,8 @@ from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
 # Create a global session for the script, that will hold the necessary cookies
 # to perform valid HTTP requests to the backend
 SESSION = requests.Session()
+THREAD = local()
+THREAD.session = requests.Session()
 
 
 class Node(object):
@@ -50,7 +51,7 @@ def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
         'trimestre': trimestre,
         'grupo': grupo
     }
-    r = SESSION.post(
+    r = THREAD.session.post(
         'http://gestioacademica.upf.edu/pds/consultaPublica/' +
         'look[conpub]ActualizarCombosPubHora', data=data)
     return BeautifulSoup(r.text)
@@ -225,9 +226,9 @@ def flatten_tree(node, max_depth='asignaturas', data=None):
 
 def init_session():
     # Set up session cookies
-    global SESSION
-    SESSION = requests.Session()
-    SESSION.get(
+    global THREAD
+    THREAD.session = requests.Session()
+    THREAD.session.get(
         'http://gestioacademica.upf.edu/pds/consultaPublica/' +
         'look%5bconpub%5dInicioPubHora?entradaPublica=true&idiomaPais=ca.ES'
     )
@@ -289,8 +290,6 @@ def populate_lessons(degree_subjects):
     Given an iterable of degree_subjects, get the related lessons and upsert
     them into the DB.
     """
-    # Set up session cookies
-    init_session()
 
     def store_ds_lessons(ds):
         data = {
@@ -304,17 +303,14 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
-        # This sets session, necessary to prepare next request (I think)
-        r = SESSION.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
-                         'look[conpub]MostrarPubHora', data=data)
+        # This sets session, necessary to prepare next request
+        r = THREAD.session.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
+                                'look[conpub]MostrarPubHora', data=data)
         # This is a quick hack, since start and end date are hardcoded to 2014
         # from 01-09-2014 until 01-07-2015
-        lessons = SESSION.get('http://gestioacademica.upf.edu/pds/consultaPublica/'
-                              '[Ajax]selecionarRangoHorarios?start=1412114400&end=1438380000')
-        try:
-            raw_lessons = lessons.json()
-        except ValueError:
-            return
+        lessons = THREAD.session.get('http://gestioacademica.upf.edu/pds/consultaPublica/'
+                                     '[Ajax]selecionarRangoHorarios?start=1412114400&end=1438380000')
+        raw_lessons = lessons.json()
         # Delete previously stored lessons related to that degreesubject
         # this way we make sure we only keep the latest data
         Lesson.objects.filter(
@@ -338,10 +334,13 @@ def populate_lessons(degree_subjects):
                 location=raw_lesson["aula"]).save()
 
     tasks = Queue()
+
     for ds in degree_subjects:
         tasks.put(ds)
     
     def worker():
+        # Set up session cookies
+        init_session()
         while not tasks.empty():
             ds = tasks.get()
             store_ds_lessons(ds)

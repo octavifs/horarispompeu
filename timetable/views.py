@@ -106,14 +106,16 @@ class SubjectView(TemplateView):
         for entry in degree_course:
             degree_id, course_key, group_key = entry.split('_')
             courses.append((degree_id, course_key, group_key))
-        q_list = []
+        degree_subjects = DegreeSubject.objects.none()
         for degree, course, group in courses:
-            q = Q(degree=degree, course_key=course, group_key=group,
-                  academic_year=settings.ACADEMIC_YEAR)
-            q_list.append(q)
-        degree_subjects = DegreeSubject.objects.filter(
-            reduce(operator.or_, q_list)
-        ).order_by(
+            degree_subjects = degree_subjects | DegreeSubject.objects.filter(
+                degree=degree,
+                course_key=course,
+                group_key=group,
+                academic_year__year=settings.ACADEMIC_YEAR,
+                term_key=settings.TERM
+            )
+        degree_subjects = degree_subjects.order_by(
             'course',
             'subject__name',
         ).values(

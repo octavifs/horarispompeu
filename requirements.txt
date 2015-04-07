@@ -7,7 +7,7 @@ icalendar==3.6.2
 ipython==2.0.0
 python-dateutil==2.2
 pytz==2014.2
-requests==2.2.1
+requests==2.6.0
 six==1.6.1
 stevedore==0.15
 virtualenv==1.11.4

@@ -51,10 +51,11 @@ def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
         'planEstudio': plan_estudio,
         'curso': curso,
         'trimestre': trimestre,
-        'grupo': grupo
+        'grupo': grupo,
+        'idPestana': 1
     }
     r = THREAD.session.post(
-        'http://gestioacademica.upf.edu/pds/consultaPublica/' +
+        'https://gestioacademica.upf.edu/pds/consultaPublica/' +
         'look[conpub]ActualizarCombosPubHora', data=data)
     return BeautifulSoup(r.text)
 
@@ -231,7 +232,7 @@ def init_session():
     global THREAD
     THREAD.session = requests.Session()
     THREAD.session.get(
-        'http://gestioacademica.upf.edu/pds/consultaPublica/' +
+        'https://gestioacademica.upf.edu/pds/consultaPublica/' +
         'look%5bconpub%5dInicioPubHora?entradaPublica=true&idiomaPais=ca.ES'
     )
 
@@ -306,14 +307,14 @@ def populate_lessons(degree_subjects):
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
         # This sets session, necessary to prepare next request
-        r = THREAD.session.post('http://gestioacademica.upf.edu/pds/consultaPublica/'
+        r = THREAD.session.post('https://gestioacademica.upf.edu/pds/consultaPublica/'
                                 'look[conpub]MostrarPubHora', data=data)
         # Date range is from 1st september to 1st of july. It covers the whole academic year so
         # 1 request per subject is enough
         start_time = int(mktime(datetime(settings.YEAR, 9, 1).timetuple()))
         end_time = int(mktime(datetime(settings.YEAR + 1, 7, 1).timetuple()))
         lessons = THREAD.session.get(
-            'http://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
+            'https://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
             '?start=%d&end=%d' % (start_time, end_time)
         )
         raw_lessons = lessons.json()
@@ -352,7 +353,8 @@ def populate_lessons(degree_subjects):
             store_ds_lessons(ds)
             tasks.task_done()
 
-    for i in xrange(10):
-        Thread(None, worker).start()
+    #for i in xrange(10):
+    #    Thread(None, worker).start()
+    worker()
 
     tasks.join()

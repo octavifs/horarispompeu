@@ -1,20 +1,12 @@
 from datetime import datetime
-from Queue import Queue
-from threading import Thread, local
+import asyncio
+import aiohttp
 from time import mktime
 
 from bs4 import BeautifulSoup
-import requests
-from django.conf import settings
-from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
-    Subject, Lesson
-
-
-# Create a global session for the script, that will hold the necessary cookies
-# to perform valid HTTP requests to the backend
-SESSION = requests.Session()
-THREAD = local()
-THREAD.session = requests.Session()
+#from django.conf import settings
+#from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
+#    Subject, Lesson
 
 
 class Node(object):
@@ -42,7 +34,50 @@ class Node(object):
         )
 
 
-def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
+
+class SessionPool():
+    def __init__(self, limit=10, retries=100):
+        self._limit = limit
+        self._connections = 0
+        self._next = 0
+        self._pool = []
+        self._retries = retries
+        self._errors = 0
+    
+    @asyncio.coroutine
+    def session(self):
+        if self._errors >= self._retries:
+            raise aiohttp.ServerDisconnectedError("Disconnected too many times")
+        if len(self._pool) < self._limit:
+            yield from self.fill_pool()
+        session = self._pool[self._next]
+        self._next = (self._next + 1) % self._limit
+        return session
+    
+    def fail(self, session):
+        self._errors += 1
+        self._pool = [e for e in self._pool if e is not session]
+    
+    @asyncio.coroutine
+    def init_session(self):
+        # Set up session cookies
+        session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1))
+        r = yield from session.get(
+            'https://gestioacademica.upf.edu/pds/consultaPublica/' +
+            'look%5bconpub%5dInicioPubHora?entradaPublica=true&idiomaPais=ca.ES'
+        )
+        yield from r.read()
+        return session
+
+    @asyncio.coroutine
+    def fill_pool(self):
+        while len(self._pool) < self._limit:
+            s = yield from self.init_session()
+            self._pool.append(s)
+ 
+
+@asyncio.coroutine
+def update_html(session, plan_docente=None, centro=None, estudio=None, plan_estudio=None,
                 curso=None, trimestre=None, grupo=None):
     data = {
         'planDocente': plan_docente,
@@ -54,50 +89,65 @@ def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
         'grupo': grupo,
         'idPestana': 1
     }
-    r = THREAD.session.post(
-        'https://gestioacademica.upf.edu/pds/consultaPublica/' +
-        'look[conpub]ActualizarCombosPubHora', data=data)
-    return BeautifulSoup(r.text)
+    data = {key: val for key, val in data.items() if val}
+    s = yield from session.session()
+    try:
+        r = yield from s.post(
+            'https://gestioacademica.upf.edu/pds/consultaPublica/' +
+            'look[conpub]ActualizarCombosPubHora', data=data)
+        d = yield from r.read()
+        return BeautifulSoup(d)
+    except (aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError):
+        session.fail(s)
+        update_html(session, plan_docente, centro, estudio, plan_estudio,
+            curso, trimestre, grupo)
 
 
+@asyncio.coroutine
 def parse_plan_docente(html, *args):
     options = html.form.find('select', id='planDocente').find_all('option')
     options = {
         entry.attrs['value']: entry.text for entry in options
     }
+    nodes = yield from asyncio.gather(*(parse(*args, plan_docente=key) for key in options))
     return Node(
         name='planDocente',
         keys=options,
-        data={key: parse(*args, plan_docente=key) for key in options}
+        data={key: node for key, node in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_centro(html, *args):
     options = html.form.find('select', id='centro').find_all('option')
     options = {
         entry.attrs['value']: entry.text for entry in options
         if entry.attrs['value'] != '-1'
     }
+    nodes = yield from asyncio.gather(*(parse(*args, centro=key) for key in options))
     return Node(
         name='centro',
         keys=options,
-        data={key: parse(*args, centro=key) for key in options}
+        data={key: node for key, node in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_estudio(html, *args):
     options = html.form.find('select', id='estudio').find_all('option')
     options = {
         entry.attrs['value']: entry.text for entry in options
         if entry.attrs['value'] != '-1'
     }
+    nodes = yield from asyncio.gather(*(parse(*args, estudio=key) for key in options))
     return Node(
         name='estudio',
         keys=options,
-        data={key: parse(*args, estudio=key) for key in options}
+        data={key: node for key, node in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_plan_estudio(html, *args):
     """planEstudio is a 1:1 relation with studio, but we simulate 1:N with a
     list of 1
@@ -107,51 +157,59 @@ def parse_plan_estudio(html, *args):
         entry.attrs['value']: entry.text for entry in options
         if entry.attrs['value'] != '-1'
     }
+    nodes = yield from asyncio.gather(*(parse(*args, plan_estudio=key) for key in options))
     return Node(
         name='planEstudio',
         keys=options,
-        data={key: parse(*args, plan_estudio=key) for key in options}
+        data={key: nodes for key, nodes in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_curso(html, *args):
     """-1 is used as Optatives in this case, so it's useful"""
     options = html.form.find('select', id='curso').find_all('option')
     options = {
         entry.attrs['value']: entry.text for entry in options
     }
+    nodes = yield from asyncio.gather(*(parse(*args, curso=key) for key in options))
     return Node(
         name='curso',
         keys=options,
-        data={key: parse(*args, curso=key) for key in options}
+        data={key: nodes for key, nodes in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_trimestre(html, *args):
     options = html.form.find('select', id='trimestre').find_all('option')
     options = {
         entry.attrs['value']: entry.text for entry in options
     }
+    nodes = yield from asyncio.gather(*(parse(*args, trimestre=key) for key in options))
     return Node(
         name='trimestre',
         keys=options,
-        data={key: parse(*args, trimestre=key) for key in options}
+        data={key: nodes for key, nodes in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_grupo(html, *args):
     options = html.form.find('select', id='grupo').find_all('option')
     options = {
         entry.attrs['value']: entry.text for entry in options
         if entry.attrs['value'] != '-1'
     }
+    nodes = yield from asyncio.gather(*(parse(*args, grupo=key) for key in options))
     return Node(
         name='grupo',
         keys=options,
-        data={key: parse(*args, grupo=key) for key in options}
+        data={key: nodes for key, nodes in zip(options, nodes)}
     )
 
 
+@asyncio.coroutine
 def parse_subjects(html, *args):
     options = html.form.find('select', id='asignaturas').find_all('option')
     options = {
@@ -164,31 +222,33 @@ def parse_subjects(html, *args):
     )
 
 
-def parse(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
+@asyncio.coroutine
+def parse(session, plan_docente=None, centro=None, estudio=None, plan_estudio=None,
           curso=None, trimestre=None, grupo=None):
     try:
-        html = update_html(plan_docente, centro, estudio, plan_estudio, curso,
+        html = yield from update_html(session, plan_docente, centro, estudio, plan_estudio, curso,
                            trimestre, grupo)
         if grupo:
-            return parse_subjects(html, plan_docente, centro, estudio,
+            result = yield from parse_subjects(html, session, plan_docente, centro, estudio,
                                   plan_estudio, curso, trimestre, grupo)
         elif trimestre:
-            return parse_grupo(html, plan_docente, centro, estudio,
+            result = yield from parse_grupo(html, session, plan_docente, centro, estudio,
                                plan_estudio, curso, trimestre)
         elif curso:
-            return parse_trimestre(html, plan_docente, centro, estudio,
+            result = yield from parse_trimestre(html, session, plan_docente, centro, estudio,
                                    plan_estudio, curso)
         elif plan_estudio:
-            return parse_curso(html, plan_docente, centro, estudio,
+            result = yield from parse_curso(html, session, plan_docente, centro, estudio,
                                plan_estudio)
         elif estudio:
-            return parse_plan_estudio(html, plan_docente, centro, estudio)
+            result = yield from parse_plan_estudio(html, session, plan_docente, centro, estudio)
         elif centro:
-            return parse_estudio(html, plan_docente, centro)
+            result = yield from parse_estudio(html, session, plan_docente, centro)
         elif plan_docente:
-            return parse_centro(html, plan_docente)
+            result = yield from parse_centro(html, session, plan_docente)
         else:
-            return parse_plan_docente(html)
+            result = yield from parse_plan_docente(html, session)
+        return result
     except AttributeError:
         # This may be triggered if we are trying to parse something the form
         # does not have Such as subjects for a faculty, or stuff like that
@@ -226,22 +286,15 @@ def flatten_tree(node, max_depth='asignaturas', data=None):
         for entry in flatten_tree(node.data[key], max_depth, dict(data)):
             yield entry
 
-
-def init_session():
-    # Set up session cookies
-    global THREAD
-    THREAD.session = requests.Session()
-    THREAD.session.get(
-        'https://gestioacademica.upf.edu/pds/consultaPublica/' +
-        'look%5bconpub%5dInicioPubHora?entradaPublica=true&idiomaPais=ca.ES'
-    )
-
+@asyncio.coroutine
+def scrap():
+    # Parse entire tree
+    root = yield from parse(SessionPool())
+    return root
 
 def populate_db():
-    # Set up session cookies
-    init_session()
-    # Parse entire tree
-    root = parse()
+    loop = asyncio.get_event_loop()
+    root = loop.run_until_complete(scrap())
     # Process academic years
     for entry in flatten_tree(root, 'planDocente'):
         course_key, course = entry['planDocente']

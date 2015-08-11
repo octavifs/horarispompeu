@@ -4,9 +4,9 @@ import aiohttp
 from time import mktime
 
 from bs4 import BeautifulSoup
-#from django.conf import settings
-#from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
-#    Subject, Lesson
+from django.conf import settings
+from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
+    Subject, Lesson
 
 
 class Node(object):
@@ -38,12 +38,12 @@ class Node(object):
 class SessionPool():
     def __init__(self, limit=10, retries=100):
         self._limit = limit
-        self._connections = 0
         self._next = 0
         self._pool = []
         self._retries = retries
         self._errors = 0
     
+    @property
     @asyncio.coroutine
     def session(self):
         if self._errors >= self._retries:
@@ -54,7 +54,13 @@ class SessionPool():
         self._next = (self._next + 1) % self._limit
         return session
     
+    def close(self):
+        for s in self._pool:
+            s.close
+        self._pool = []
+    
     def fail(self, session):
+        #session.close()
         self._errors += 1
         self._pool = [e for e in self._pool if e is not session]
     
@@ -90,7 +96,7 @@ def update_html(session, plan_docente=None, centro=None, estudio=None, plan_estu
         'idPestana': 1
     }
     data = {key: val for key, val in data.items() if val}
-    s = yield from session.session()
+    s = yield from session.session
     try:
         r = yield from s.post(
             'https://gestioacademica.upf.edu/pds/consultaPublica/' +
@@ -275,13 +281,13 @@ def flatten_tree(node, max_depth='asignaturas', data=None):
         return
     # Reaching max_depth node yields dict
     if node.name == max_depth:
-        for key, val in node.keys.iteritems():
+        for key, val in node.keys.items():
             copy = dict(data)
             copy[node.name] = (key, val)
             yield copy
         return
     # Recursion
-    for key, val in node.keys.iteritems():
+    for key, val in node.keys.items():
         data[node.name] = (key, val)
         for entry in flatten_tree(node.data[key], max_depth, dict(data)):
             yield entry
@@ -289,7 +295,9 @@ def flatten_tree(node, max_depth='asignaturas', data=None):
 @asyncio.coroutine
 def scrap():
     # Parse entire tree
-    root = yield from parse(SessionPool())
+    session_pool = SessionPool()
+    root = yield from parse(session_pool)
+    session_pool.close()
     return root
 
 def populate_db():
@@ -347,7 +355,8 @@ def populate_lessons(degree_subjects):
     them into the DB.
     """
 
-    def store_ds_lessons(ds):
+    @asyncio.coroutine
+    def store_ds_lessons(ds, session_pool):
         data = {
             'planDocente': ds.academic_year.year_key,
             'centro': ds.degree.faculty.name_key,
@@ -359,55 +368,48 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
+        session = session_pool.session
         # This sets session, necessary to prepare next request
-        r = THREAD.session.post('https://gestioacademica.upf.edu/pds/consultaPublica/'
-                                'look[conpub]MostrarPubHora', data=data)
-        # Date range is from 1st september to 1st of july. It covers the whole academic year so
-        # 1 request per subject is enough
-        start_time = int(mktime(datetime(settings.YEAR, 9, 1).timetuple()))
-        end_time = int(mktime(datetime(settings.YEAR + 1, 7, 1).timetuple()))
-        lessons = THREAD.session.get(
-            'https://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
-            '?start=%d&end=%d' % (start_time, end_time)
-        )
-        raw_lessons = lessons.json()
-        # Delete previously stored lessons related to that degreesubject
-        # this way we make sure we only keep the latest data
-        Lesson.objects.filter(
-            subject=ds.subject,
-            group_key=ds.group_key,
-            academic_year=ds.academic_year,
-            term=ds.term).delete()
-        for raw_lesson in raw_lessons:
-            if raw_lesson['festivoNoLectivo']:
-                continue
-            Lesson(
+        try:
+            r = yield from session.post('https://gestioacademica.upf.edu/pds/consultaPublica/'
+                                    'look[conpub]MostrarPubHora', data=data)
+            yield from r.read()
+            # Date range is from 1st september to 1st of july. It covers the whole academic year so
+            # 1 request per subject is enough
+            start_time = int(mktime(datetime(settings.YEAR, 9, 1).timetuple()))
+            end_time = int(mktime(datetime(settings.YEAR + 1, 7, 1).timetuple()))
+            lessons = yield from session.get(
+                'https://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
+                '?start=%d&end=%d' % (start_time, end_time)
+            )
+            raw_lessons = yield from lessons.json()
+            # Delete previously stored lessons related to that degreesubject
+            # this way we make sure we only keep the latest data
+            Lesson.objects.filter(
                 subject=ds.subject,
                 group_key=ds.group_key,
-                date_start=datetime.strptime(raw_lesson["start"],
-                                             "%Y-%m-%d %H:%M:%S"),
-                date_end=datetime.strptime(raw_lesson["end"],
-                                           "%Y-%m-%d %H:%M:%S"),
                 academic_year=ds.academic_year,
-                term=ds.term,
-                entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
-                location=raw_lesson["aula"]).save()
+                term=ds.term).delete()
+            for raw_lesson in raw_lessons:
+                if raw_lesson['festivoNoLectivo']:
+                    continue
+                Lesson(
+                    subject=ds.subject,
+                    group_key=ds.group_key,
+                    date_start=datetime.strptime(raw_lesson["start"],
+                                                 "%Y-%m-%d %H:%M:%S"),
+                    date_end=datetime.strptime(raw_lesson["end"],
+                                               "%Y-%m-%d %H:%M:%S"),
+                    academic_year=ds.academic_year,
+                    term=ds.term,
+                    entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
+                    location=raw_lesson["aula"]).save()
+        except (asyncio.ClientResponseError, asyncio.ServerDisconnectedError):
+            session_pool.fail(session)
+            store_ds_lessons(ds, session_pool)
 
-    tasks = Queue()
-
-    for ds in degree_subjects:
-        tasks.put(ds)
-    
-    def worker():
-        # Set up session cookies
-        init_session()
-        while not tasks.empty():
-            ds = tasks.get()
-            store_ds_lessons(ds)
-            tasks.task_done()
-
-    #for i in xrange(10):
-    #    Thread(None, worker).start()
-    worker()
-
-    tasks.join()
+    session_pool = SessionPool()
+    tasks = asyncio.gather(*(store_ds_lessons(ds, session_pool) for ds in degree_subjects))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(tasks)
+    session_pool.close()

@@ -368,7 +368,7 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
-        session = session_pool.session
+        session = yield from session_pool.session
         # This sets session, necessary to prepare next request
         try:
             r = yield from session.post('https://gestioacademica.upf.edu/pds/consultaPublica/'

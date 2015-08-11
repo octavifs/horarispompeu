@@ -376,8 +376,10 @@ def populate_lessons(degree_subjects):
             yield from r.read()
             # Date range is from 1st september to 1st of july. It covers the whole academic year so
             # 1 request per subject is enough
-            start_time = int(mktime(datetime(settings.YEAR, 9, 1).timetuple()))
-            end_time = int(mktime(datetime(settings.YEAR + 1, 7, 1).timetuple()))
+            today = datetime.now()
+            curr_academic_year = today.year if today.month < 9 else today.year + 1
+            start_time = int(mktime(datetime(curr_academic_year - 1, 9, 1).timetuple()))
+            end_time = int(mktime(datetime(curr_academic_year, 7, 1).timetuple()))
             lessons = yield from session.get(
                 'https://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
                 '?start=%d&end=%d' % (start_time, end_time)

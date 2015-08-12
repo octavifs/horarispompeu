@@ -1,12 +1,19 @@
 from datetime import datetime
 import asyncio
 import aiohttp
+import contextlib
 from time import mktime
 
 from bs4 import BeautifulSoup
 from django.conf import settings
 from timetable.models import AcademicYear, Faculty, Degree, DegreeSubject,\
     Subject, Lesson
+
+
+# Defines max number of concurrent connections employed by the scraper module
+MAX_CONNECTIONS = 20
+# Defines a semaphore which allows for a total of MAX_CONNECTIONS concurrent acquires
+SEMAPHORE = asyncio.Semaphore(MAX_CONNECTIONS)
 
 
 class Node(object):
@@ -33,57 +40,20 @@ class Node(object):
             repr(self.data)
         )
 
-
-
-class SessionPool():
-    def __init__(self, limit=10, retries=100):
-        self._limit = limit
-        self._next = 0
-        self._pool = []
-        self._retries = retries
-        self._errors = 0
-    
-    @property
-    @asyncio.coroutine
-    def session(self):
-        if self._errors >= self._retries:
-            raise aiohttp.ServerDisconnectedError("Disconnected too many times")
-        if len(self._pool) < self._limit:
-            yield from self.fill_pool()
-        session = self._pool[self._next]
-        self._next = (self._next + 1) % self._limit
-        return session
-    
-    def close(self):
-        for s in self._pool:
-            s.close
-        self._pool = []
-    
-    def fail(self, session):
-        #session.close()
-        self._errors += 1
-        self._pool = [e for e in self._pool if e is not session]
-    
-    @asyncio.coroutine
-    def init_session(self):
-        # Set up session cookies
-        session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1))
-        r = yield from session.get(
-            'https://gestioacademica.upf.edu/pds/consultaPublica/' +
-            'look%5bconpub%5dInicioPubHora?entradaPublica=true&idiomaPais=ca.ES'
-        )
-        yield from r.read()
-        return session
-
-    @asyncio.coroutine
-    def fill_pool(self):
-        while len(self._pool) < self._limit:
-            s = yield from self.init_session()
-            self._pool.append(s)
- 
+@asyncio.coroutine
+def set_session(s):
+    """
+    Makes the request that will create the unique id necessary for GestioAcademica
+    API to work properly
+    """
+    r = yield from s.get(
+        'https://gestioacademica.upf.edu/pds/consultaPublica/' +
+        'look%5bconpub%5dInicioPubHora?entradaPublica=true&idiomaPais=ca.ES'
+    )
+    yield from r.release()
 
 @asyncio.coroutine
-def update_html(session, plan_docente=None, centro=None, estudio=None, plan_estudio=None,
+def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
                 curso=None, trimestre=None, grupo=None):
     data = {
         'planDocente': plan_docente,
@@ -96,18 +66,14 @@ def update_html(session, plan_docente=None, centro=None, estudio=None, plan_estu
         'idPestana': 1
     }
     data = {key: val for key, val in data.items() if val}
-    s = yield from session.session
-    try:
-        r = yield from s.post(
-            'https://gestioacademica.upf.edu/pds/consultaPublica/' +
-            'look[conpub]ActualizarCombosPubHora', data=data)
-        d = yield from r.read()
-        return BeautifulSoup(d)
-    except (aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError):
-        session.fail(s)
-        update_html(session, plan_docente, centro, estudio, plan_estudio,
-            curso, trimestre, grupo)
-
+    with (yield from SEMAPHORE):
+        with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as s:
+            yield from set_session(s)
+            r = yield from s.post(
+                'https://gestioacademica.upf.edu/pds/consultaPublica/' +
+                'look[conpub]ActualizarCombosPubHora', data=data)
+            d = yield from r.read()
+            return BeautifulSoup(d)
 
 @asyncio.coroutine
 def parse_plan_docente(html, *args):
@@ -229,31 +195,31 @@ def parse_subjects(html, *args):
 
 
 @asyncio.coroutine
-def parse(session, plan_docente=None, centro=None, estudio=None, plan_estudio=None,
+def parse(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
           curso=None, trimestre=None, grupo=None):
     try:
-        html = yield from update_html(session, plan_docente, centro, estudio, plan_estudio, curso,
+        html = yield from update_html(plan_docente, centro, estudio, plan_estudio, curso,
                            trimestre, grupo)
         if grupo:
-            result = yield from parse_subjects(html, session, plan_docente, centro, estudio,
+            result = yield from parse_subjects(html, plan_docente, centro, estudio,
                                   plan_estudio, curso, trimestre, grupo)
         elif trimestre:
-            result = yield from parse_grupo(html, session, plan_docente, centro, estudio,
+            result = yield from parse_grupo(html, plan_docente, centro, estudio,
                                plan_estudio, curso, trimestre)
         elif curso:
-            result = yield from parse_trimestre(html, session, plan_docente, centro, estudio,
+            result = yield from parse_trimestre(html, plan_docente, centro, estudio,
                                    plan_estudio, curso)
         elif plan_estudio:
-            result = yield from parse_curso(html, session, plan_docente, centro, estudio,
+            result = yield from parse_curso(html, plan_docente, centro, estudio,
                                plan_estudio)
         elif estudio:
-            result = yield from parse_plan_estudio(html, session, plan_docente, centro, estudio)
+            result = yield from parse_plan_estudio(html, plan_docente, centro, estudio)
         elif centro:
-            result = yield from parse_estudio(html, session, plan_docente, centro)
+            result = yield from parse_estudio(html, plan_docente, centro)
         elif plan_docente:
-            result = yield from parse_centro(html, session, plan_docente)
+            result = yield from parse_centro(html, plan_docente)
         else:
-            result = yield from parse_plan_docente(html, session)
+            result = yield from parse_plan_docente(html)
         return result
     except AttributeError:
         # This may be triggered if we are trying to parse something the form
@@ -292,17 +258,9 @@ def flatten_tree(node, max_depth='asignaturas', data=None):
         for entry in flatten_tree(node.data[key], max_depth, dict(data)):
             yield entry
 
-@asyncio.coroutine
-def scrap():
-    # Parse entire tree
-    session_pool = SessionPool()
-    root = yield from parse(session_pool)
-    session_pool.close()
-    return root
-
 def populate_db():
     loop = asyncio.get_event_loop()
-    root = loop.run_until_complete(scrap())
+    root = loop.run_until_complete(parse())
     # Process academic years
     for entry in flatten_tree(root, 'planDocente'):
         course_key, course = entry['planDocente']
@@ -356,7 +314,7 @@ def populate_lessons(degree_subjects):
     """
 
     @asyncio.coroutine
-    def store_ds_lessons(ds, session_pool):
+    def store_ds_lessons(ds):
         data = {
             'planDocente': ds.academic_year.year_key,
             'centro': ds.degree.faculty.name_key,
@@ -368,50 +326,46 @@ def populate_lessons(degree_subjects):
             'asignaturas': ds.subject.name_key,
             'asignatura' + ds.subject.name_key: ds.subject.name_key
         }
-        session = yield from session_pool.session
-        # This sets session, necessary to prepare next request
-        try:
-            r = yield from session.post('https://gestioacademica.upf.edu/pds/consultaPublica/'
-                                    'look[conpub]MostrarPubHora', data=data)
-            yield from r.read()
-            # Date range is from 1st september to 1st of july. It covers the whole academic year so
-            # 1 request per subject is enough
-            today = datetime.now()
-            curr_academic_year = today.year if today.month < 9 else today.year + 1
-            start_time = int(mktime(datetime(curr_academic_year - 1, 9, 1).timetuple()))
-            end_time = int(mktime(datetime(curr_academic_year, 7, 1).timetuple()))
-            lessons = yield from session.get(
-                'https://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
-                '?start=%d&end=%d' % (start_time, end_time)
-            )
-            raw_lessons = yield from lessons.json()
-            # Delete previously stored lessons related to that degreesubject
-            # this way we make sure we only keep the latest data
-            Lesson.objects.filter(
+        with (yield from SEMAPHORE):
+            with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as s:
+                yield from set_session(s)
+                r = yield from s.post('https://gestioacademica.upf.edu/pds/consultaPublica/'
+                                        'look[conpub]MostrarPubHora', data=data)
+                yield from r.read()
+                # Date range is from 1st september to 1st of july. It covers the whole academic year so
+                # 1 request per subject is enough
+                today = datetime.now()
+                curr_academic_year = today.year if today.month < 9 else today.year + 1
+                start_time = int(mktime(datetime(curr_academic_year - 1, 9, 1).timetuple()))
+                end_time = int(mktime(datetime(curr_academic_year, 7, 1).timetuple()))
+                lessons = yield from s.get(
+                    'https://gestioacademica.upf.edu/pds/consultaPublica/[Ajax]selecionarRangoHorarios'
+                    '?start=%d&end=%d' % (start_time, end_time)
+                )
+                raw_lessons = yield from lessons.json()
+        # Delete previously stored lessons related to that degreesubject
+        # this way we make sure we only keep the latest data
+        Lesson.objects.filter(
+            subject=ds.subject,
+            group_key=ds.group_key,
+            academic_year=ds.academic_year,
+            term=ds.term).delete()
+        for raw_lesson in raw_lessons:
+            if raw_lesson['festivoNoLectivo']:
+                continue
+            Lesson(
                 subject=ds.subject,
                 group_key=ds.group_key,
+                date_start=datetime.strptime(raw_lesson["start"],
+                                             "%Y-%m-%d %H:%M:%S"),
+                date_end=datetime.strptime(raw_lesson["end"],
+                                           "%Y-%m-%d %H:%M:%S"),
                 academic_year=ds.academic_year,
-                term=ds.term).delete()
-            for raw_lesson in raw_lessons:
-                if raw_lesson['festivoNoLectivo']:
-                    continue
-                Lesson(
-                    subject=ds.subject,
-                    group_key=ds.group_key,
-                    date_start=datetime.strptime(raw_lesson["start"],
-                                                 "%Y-%m-%d %H:%M:%S"),
-                    date_end=datetime.strptime(raw_lesson["end"],
-                                               "%Y-%m-%d %H:%M:%S"),
-                    academic_year=ds.academic_year,
-                    term=ds.term,
-                    entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
-                    location=raw_lesson["aula"]).save()
-        except (asyncio.ClientResponseError, asyncio.ServerDisconnectedError):
-            session_pool.fail(session)
-            store_ds_lessons(ds, session_pool)
+                term=ds.term,
+                entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
+                location=raw_lesson["aula"]).save()
 
-    session_pool = SessionPool()
-    tasks = asyncio.gather(*(store_ds_lessons(ds, session_pool) for ds in degree_subjects))
+    tasks = asyncio.gather(*(store_ds_lessons(ds) for ds in degree_subjects))
     loop = asyncio.get_event_loop()
     loop.run_until_complete(tasks)
-    session_pool.close()
+

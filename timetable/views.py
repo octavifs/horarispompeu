@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import unicode_literals
+
 
 import operator
 import hashlib
@@ -30,6 +30,7 @@ from django.conf import settings
 from timetable.models import *
 from timetable import ical
 from timetable.forms import ContactForm
+from functools import reduce
 
 
 # TemplateView will also have a dispatch handler for POST requests

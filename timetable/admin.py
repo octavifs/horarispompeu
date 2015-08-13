@@ -63,13 +63,10 @@ class LessonAdmin(admin.ModelAdmin):
 
 class CalendarAdmin(admin.ModelAdmin):
     def degree_subjects_list(self, calendar):
-        subjects = map(
-            lambda entry: u'{0} {1}'.format(*entry.values()),
-            calendar.degree_subjects.all().values(
+        subjects = ['{0} {1}'.format(*list(entry.values())) for entry in calendar.degree_subjects.all().values(
                 'subject__name', 'group'
-            ).distinct()
-        )
-        return u"\n".join(subjects)
+            ).distinct()]
+        return "\n".join(subjects)
 
     readonly_fields = ('degree_subjects_list',)
     fields = ['name', 'file', 'degree_subjects_list']

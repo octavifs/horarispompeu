@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from timetable import scraper
 from timetable import ical
 from timetable.models import DegreeSubject, Calendar, Lesson
+from functools import reduce
 
 
 class Command(NoArgsCommand):

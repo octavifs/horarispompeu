@@ -21,6 +21,7 @@ TERM = "3"
 TERM_STRING = '1r Trimestre, 2014-15'
 
 
+SUPPORT_EMAIL = 'horarispompeu@gmail.com'
 ############################
 # EMail SMTP Server config #
 ############################

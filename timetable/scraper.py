@@ -41,7 +41,7 @@ class Node(object):
         )
 
 @asyncio.coroutine
-def set_session(s):
+def setup_session_id(s):
     """
     Makes the request that will create the unique id necessary for GestioAcademica
     API to work properly
@@ -68,7 +68,7 @@ def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
     data = {key: val for key, val in data.items() if val}
     with (yield from SEMAPHORE):
         with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as s:
-            yield from set_session(s)
+            yield from setup_session_id(s)
             r = yield from s.post(
                 'https://gestioacademica.upf.edu/pds/consultaPublica/' +
                 'look[conpub]ActualizarCombosPubHora', data=data)
@@ -328,7 +328,7 @@ def populate_lessons(degree_subjects):
         }
         with (yield from SEMAPHORE):
             with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as s:
-                yield from set_session(s)
+                yield from setup_session_id(s)
                 r = yield from s.post('https://gestioacademica.upf.edu/pds/consultaPublica/'
                                         'look[conpub]MostrarPubHora', data=data)
                 yield from r.read()
@@ -365,7 +365,8 @@ def populate_lessons(degree_subjects):
                 entry="\n".join((raw_lesson["tipologia"], raw_lesson["grup"])),
                 location=raw_lesson["aula"]).save()
 
-    tasks = asyncio.gather(*(store_ds_lessons(ds) for ds in degree_subjects))
+    # populate_lessons logic starts now
+    tasks = asyncio.wait([store_ds_lessons(ds) for ds in degree_subjects])
     loop = asyncio.get_event_loop()
     loop.run_until_complete(tasks)
 

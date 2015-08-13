@@ -25,7 +25,6 @@ urlpatterns = patterns(
     url(r'^assignatures/$', views.SubjectView.as_view(), name='subject'),
     url(r'^calendari/$', views.CalendarView.as_view(), name='calendar'),
     url(r'^calendari/(?P<pk>\w{40})\.ics$', views.ICalendarView.as_view(), name='icalendar'),
-    url(r'^subscriu/$', views.subscription, name='subscription'),
     url(r'^pmf/$', TemplateView.as_view(template_name='pmf.html'), name='pmf'),
     url(r'^problemes/$', views.ContactView.as_view(), name='contact'),
     url(r'^gracies/$', TemplateView.as_view(template_name='thanks.html'),

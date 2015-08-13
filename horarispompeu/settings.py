@@ -207,5 +207,3 @@ BACKGROUND_IMAGES = [
     ("20140907_100840_HDR.jpg", "La vall d'en Bas. Puigsacalm (la Garrotxa)"),
     ("20140907_132333_HDR.jpg", "flora al Puigsacalm (la Garrotxa)")
 ]
-
-AUTO_SUBSCRIPTION_SCRIPT = path.join(BASE_DIR, "phantomjs/gcal_addICS.js")

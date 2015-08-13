@@ -33,10 +33,6 @@ EMAIL_HOST_PASSWORD = 'secretPassword'
 DEFAULT_FROM_EMAIL = 'user@hostname.com'
 SERVER_EMAIL = 'user@hostname.com'
 
-##########################################
-# PhantomJS (GCal automatic subscription #
-##########################################
-PHANTOMJS_BIN = "/path/to/bin/phantomjs"
 
 ##############
 # S3 Backups #

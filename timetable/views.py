@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
-
 import operator
 import hashlib
 import subprocess
@@ -198,26 +195,6 @@ class ICalendarView(View):
         response = HttpResponse(ical.generate(lessons))
         response['Content-Type'] = 'text/calendar;charset=utf-8'
         return response
-
-
-def subscription(request):
-    # First, deal with invalid inputs:
-    if (
-        request.method == 'GET' or
-        not request.POST["email"] or
-        not request.POST["password"] or
-        not request.POST["calendar"]
-    ):
-        # This will render a 500 error page on production
-        return render(request, '500.html', {'term': settings.TERM})
-    # Once input is seemingly valid render the view:
-    email = request.POST["email"]
-    password = request.POST["password"]
-    calendar = request.POST["calendar"]
-    result = subprocess.call(
-        [settings.PHANTOMJS_BIN, settings.AUTO_SUBSCRIPTION_SCRIPT, email,
-         password, calendar])
-    return render(request, 'subscription_result.html', {'result': result})
 
 
 class ContactView(FormView):

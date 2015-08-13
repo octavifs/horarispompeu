@@ -54,14 +54,6 @@ Clone the repo and install requirements:
     git clone https://github.com/octavifs/horarispompeu
     pip install -r requirements.txt
 
-Install phantomJS (version 1.9.2 used. Later versions may work):
-    
-    cd /to/wherever/you/want/to/download/the/source
-    wget https://phantomjs.googlecode.com/files/phantomjs-1.9.2-linux-x86_64.tar.bz2
-    tar -xvf phantomjs-1.9.2-linux-x86_64.tar.bz2
-    cd phantomjs-1.9.2-linux-x86_64/
-    sudo ln -sf `pwd`/bin/phantomjs /usr/local/bin/phantomjs
-
 You may want to set up nginx and supervisor. A sample config is provided in the repo. I would recommend to setup nginx with a SSL cert (HTTPS server) if you plan on using the automated login functionality.
 
 To set up the django app, first of all create a `settings_private.py` file alongside `settings.py`, with the correct config for the parameters specified in the `settings.py` file.

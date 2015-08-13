@@ -73,7 +73,7 @@ def update_html(plan_docente=None, centro=None, estudio=None, plan_estudio=None,
                 'https://gestioacademica.upf.edu/pds/consultaPublica/' +
                 'look[conpub]ActualizarCombosPubHora', data=data)
             d = yield from r.read()
-            return BeautifulSoup(d)
+            return BeautifulSoup(d, 'html.parser')
 
 @asyncio.coroutine
 def parse_plan_docente(html, *args):

@@ -19,7 +19,7 @@
 
   <form action="{% url 'subject' %}" method="post" class="form-horizontal" role="form">
   {% csrf_token %}
-  {% for degree, course_list in degree_list.iteritems %}
+  {% for degree, course_list in degree_list.items %}
   <div class="form-group" data-toggle="buttons">
       <h2>{{ degree }}</h2>    
   </div>

@@ -113,7 +113,7 @@ class SubjectView(TemplateView):
                 degree=degree,
                 course_key=course,
                 group_key=group,
-                academic_year__year=settings.ACADEMIC_YEAR,
+                academic_year=settings.ACADEMIC_YEAR,
                 term_key=settings.TERM
             )
         degree_subjects = degree_subjects.order_by(
@@ -164,7 +164,7 @@ class CalendarView(TemplateView):
         #DegreeSubjects Hash
         degree_subjects_str = " ".join(str(id)
                                        for id in sorted(degree_subject_ids))
-        degree_subjects_hash = hashlib.sha1(degree_subjects_str).hexdigest()
+        degree_subjects_hash = hashlib.sha1(degree_subjects_str.encode("utf8")).hexdigest()
         calendar = None
         try:
             calendar = Calendar.objects.get(name=degree_subjects_hash)

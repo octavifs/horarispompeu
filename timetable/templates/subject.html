@@ -23,11 +23,11 @@
     </div><!-- /input-group -->
     <form action="{% url 'calendar' %}" method="post" class="form-horizontal" role="form">
     {% csrf_token %}
-    {% for degree, course_subjects in degree_course_subjects.iteritems %}
+    {% for degree, course_subjects in degree_course_subjects.items %}
         <div class="form-group" data-toggle="buttons-checkbox">
         <h2>{{ degree }}</h2>
         </div>
-        {% for course, degree_subjects in course_subjects.iteritems %}
+        {% for course, degree_subjects in course_subjects.items %}
           <div class="form-group" data-toggle="buttons-checkbox">
           <h3>{{ course }}</h3>
           </div>

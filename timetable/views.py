@@ -19,11 +19,12 @@ import hashlib
 import subprocess
 
 from django.shortcuts import render
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.db.models import Q
 from django.core.files.base import ContentFile
-from django.views.generic import TemplateView, FormView
-from django.http import Http404
+from django.views.generic import TemplateView, FormView, View
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
 
 from django.conf import settings
 
@@ -171,25 +172,32 @@ class CalendarView(TemplateView):
         except Calendar.DoesNotExist:
             degree_subjects = DegreeSubject.objects.filter(
                 id__in=degree_subject_ids)
-            q_list = []
-            for ds in degree_subjects:
-                q = Q(
-                    subject=ds.subject,
-                    group_key=ds.group_key,
-                    academic_year=settings.ACADEMIC_YEAR)
-                q_list.append(q)
-            lessons_filter = reduce(operator.or_, q_list)
-            lessons = Lesson.objects.filter(lessons_filter)
             calendar = Calendar(name=degree_subjects_hash, )
-            calendar.file.save(calendar.name + '.ics',
-                               ContentFile(ical.generate(lessons)))
+            calendar.save()
             calendar.degree_subjects.add(*degree_subjects)
         finally:
             return {
                 'calendar_url': self.request.build_absolute_uri(
-                    calendar.file.url),
+                    reverse('icalendar', kwargs={'pk': calendar.name})),
                 'calendar_name': calendar.name,
             }
+
+
+class ICalendarView(View):
+    def get(self, request, *args, **kwargs):
+        calendar = get_object_or_404(Calendar, name=self.kwargs['pk'])
+        q_list = []
+        for ds in calendar.degree_subjects.all():
+            q = Q(
+                subject=ds.subject,
+                group_key=ds.group_key,
+                academic_year=settings.ACADEMIC_YEAR)
+            q_list.append(q)
+        lessons_filter = reduce(operator.or_, q_list)
+        lessons = Lesson.objects.filter(lessons_filter)
+        response = HttpResponse(ical.generate(lessons))
+        response['Content-Type'] = 'text/calendar;charset=utf-8'
+        return response
 
 
 def subscription(request):
@@ -221,7 +229,7 @@ class ContactView(FormView):
         subject = '[HP] [SUPORT] {}'.format(form.cleaned_data['subject'])
         message = form.cleaned_data['message']
         sender = form.cleaned_data['sender']
-        recipients = ['horarispompeu@gmail.com']
+        recipients = [settings.SUPPORT_EMAIL]
         from django.core.mail import send_mail
         send_mail(subject, message, sender, recipients)
 

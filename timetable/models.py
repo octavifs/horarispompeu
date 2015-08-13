@@ -185,5 +185,5 @@ class Calendar(models.Model):
     calendar.
     """
     name = models.CharField(max_length=128, primary_key=True, blank=False)
-    file = models.FileField(upload_to='.')
     degree_subjects = models.ManyToManyField(DegreeSubject)
+

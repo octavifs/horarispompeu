@@ -69,8 +69,8 @@ class CalendarAdmin(admin.ModelAdmin):
         return "\n".join(subjects)
 
     readonly_fields = ('degree_subjects_list',)
-    fields = ['name', 'file', 'degree_subjects_list']
-    list_display = ['name', 'file', 'degree_subjects_list']
+    fields = ['name', 'degree_subjects_list']
+    list_display = ['name', 'degree_subjects_list']
 
 
 admin.site.register(Faculty)

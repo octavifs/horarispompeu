@@ -7,8 +7,7 @@ import time
 import traceback
 from os import path
 
-from boto.s3.connection import S3Connection
-from boto.s3.key import Key
+from boto3.session import Session
 
 from django.core.management.base import NoArgsCommand
 from django.core.mail import send_mail
@@ -34,29 +33,38 @@ class Command(NoArgsCommand):
         # Also backup the DB and private config to S3 (if settings say so)
         if settings.S3_BACKUP:
             try:
-                conn = S3Connection(settings.AWS_ACCESS_KEY,
-                                    settings.AWS_SECRET_KEY)
-                bucket = conn.get_bucket(settings.S3_BUCKET)
-                database = Key(bucket)
-                database.key = '/{}/horaris.sqlite'.format(now)
-                database.set_contents_from_filename(
-                    path.join(settings.BASE_DIR, 'resources/horaris.sqlite'))
+                s3 = Session(
+                    aws_access_key_id=settings.AWS_ACCESS_KEY,
+                    aws_secret_access_key=settings.AWS_SECRET_KEY,
+                    region_name='eu-west-1'
+                ).client('s3')
+                # Upload the database
+                s3.upload_file(
+                    path.join(settings.BASE_DIR, 'resources/horaris.sqlite'),
+                    settings.S3_BUCKET,
+                    '/{}/horaris.sqlite'.format(now)
+                )
                 message += 'Uploaded DB to S3\n'
-                private_settings = Key(bucket)
-                private_settings.key = '/{}/settings_private.py'.format(now)
-                private_settings.set_contents_from_filename(
-                    path.join(settings.BASE_DIR,
-                              'horarispompeu/settings_private.py'))
+                # Upload private settings
+                s3.upload_file(
+                    path.join(settings.BASE_DIR, 'horarispompeu/settings_private.py'),
+                    settings.S3_BUCKET,
+                    '/{}/settings_private.py'.format(now)
+                )
                 message += 'Uploaded settings_private.py to S3\n'
-                supervisord_config = Key(bucket)
-                supervisord_config.key = '/{}/supervisord_horarispompeu.conf'.\
-                    format(now)
-                supervisord_config.set_contents_from_filename(
-                    settings.SUPERVISORD_CONFIG)
+                # Upload supervisord config
+                s3.upload_file(
+                    settings.SUPERVISORD_CONFIG,
+                    settings.S3_BUCKET,
+                    '/{}/supervisord_horarispompeu.conf'.format(now)
+                )
                 message += 'Uploaded supervisor conf to S3\n'
-                nginx_config = Key(bucket)
-                nginx_config.key = '/{}/nginx_horarispompeu'.format(now)
-                nginx_config.set_contents_from_filename(settings.NGINX_CONFIG)
+                # Upload nginx config
+                s3.upload_file(
+                    settings.NGINX_CONFIG,
+                    settings.S3_BUCKET,
+                    '/{}/nginx_horarispompeu'.format(now)
+                )
                 message += 'Uploaded nginx conf to S3\n'
             except:
                 # If something goes wrong, email traceback
